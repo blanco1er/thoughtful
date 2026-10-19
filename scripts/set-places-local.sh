@@ -16,7 +16,7 @@ store() {
 if [ -f "$SRC" ]; then
   echo "A Google Places key exists for StudioPilot:"
   echo "  $SRC"
-  read -r -p "Reuse it for Thoughtful? It will be copied to your Keychain without being shown. [y/N] " yn
+  printf %s "Reuse it for Thoughtful? It will be copied to your Keychain without being shown. [y/N] "; read -r yn
   if [ "${yn:-n}" = "y" ] || [ "${yn:-n}" = "Y" ]; then
     /usr/bin/python3 -c '
 import json,sys
@@ -34,5 +34,5 @@ sys.stdout.write(find(d)+"\n")' "$SRC" | store
     exit 0
   fi
 fi
-read -r -s -p "Google Places API key (hidden): " k; echo
+printf %s "Google Places API key (hidden): "; stty -echo 2>/dev/null; read -r k; stty echo 2>/dev/null; echo
 printf '%s\n' "$k" | store; unset k

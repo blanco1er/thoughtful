@@ -17,12 +17,12 @@ store() { # reads the key on stdin and feeds it to `security -i` through stdin (
 echo "Thoughtful needs a Channel3 key to show real gift ideas (US retailers)."
 echo "  1) Paste the key (hidden)"
 echo "  2) Copy it from the Mandat Lambda (AWS profile \"mandat\"), without showing it"
-read -r -p "Choice [1/2]: " choice
+printf %s "Choice [1/2]: "; read -r choice
 if [ "${choice:-1}" = "2" ]; then
   FN="${MANDAT_LAMBDA_NAME:-mandat-alexa}"
   aws lambda get-function-configuration --profile "${AWS_PROFILE:-mandat}" --region "${AWS_REGION:-us-east-1}" --function-name "$FN" \
     --query 'Environment.Variables.CHANNEL3_API_KEY' --output text 2>/dev/null | { IFS= read -r k || true; if [ -z "$k" ] || [ "$k" = "None" ]; then echo "No CHANNEL3_API_KEY on Lambda \"$FN\" (set MANDAT_LAMBDA_NAME if it has another name)."; exit 1; fi; printf '%s\n' "$k" | store; }
 else
-  read -r -s -p "Channel3 API key: " k; echo
+  printf %s "Channel3 API key: "; stty -echo 2>/dev/null; read -r k; stty echo 2>/dev/null; echo
   printf '%s\n' "$k" | store; unset k
 fi
