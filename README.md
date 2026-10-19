@@ -1,5 +1,7 @@
 # Thoughtful
 
+[![test](https://github.com/blanco1er/thoughtful/actions/workflows/test.yml/badge.svg)](https://github.com/blanco1er/thoughtful/actions/workflows/test.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg) ![Node 22+](https://img.shields.io/badge/node-%E2%89%A522-brightgreen.svg)
+
 **Bee hears what the people you love care about. Thoughtful keeps it, quietly, and gives it back at the right moment, without ever interrupting a conversation.**
 
 Your sister said she has been dying to try a pottery wheel. Your best friend ran his first half-marathon on Sunday. You promised your grandmother the garden photo album. You will forget two of the three. Thoughtful will not, and it will never speak up while you are with them.
@@ -7,6 +9,8 @@ Your sister said she has been dying to try a pottery wheel. Your best friend ran
 - **During the day:** nothing. Bee listens; Thoughtful reads Bee in the background.
 - **In the evening,** right after Bee's 8 PM summary: one calm card, on an Echo Show or on your iPhone, with **three things at most**: one note to confirm ("Did Bee hear this right?"), one occasion coming up (her own words, with dates, three real gift ideas and a real place nearby), one promise to keep.
 - **The next day,** only what you kept reaches your wrist, as a Bee to-do with an alarm, at a quiet moment: before you see someone, never during a conversation, never more than twice a day.
+
+![Tonight's card on an Echo Show 15 (sample household, invented data)](docs/gallery/01-tonight-echo.jpg)
 
 Built for the Bee (Wearable AI) track of the Amazon Developer hackathon "Build, Ship, Shape" (2026).
 
@@ -97,7 +101,7 @@ Bee (Apple Watch / wearable)
 ## Tests
 
 ```sh
-npm test        # 38 tests, invented fixtures only, no network
+npm test        # 50 tests, invented fixtures only, no network
 AWS_PROFILE=<profile> node scripts/bench-extraction.mjs 3   # quality on 10 invented FR/EN conversations (≈ 1 cent)
 npm run check   # tests + private data check
 ```

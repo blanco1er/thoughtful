@@ -242,6 +242,14 @@ function peopleView() {
   root.innerHTML = html + `</main>${tabbar('people')}`;
 }
 
+// Birthday without a year: month + day (a date picker would invent a year).
+function bdaySelects(mmdd) {
+  const [m, d] = (mmdd || '').split('-');
+  const months = Array.from({ length: 12 }, (_, i) => [String(i + 1).padStart(2, '0'), new Intl.DateTimeFormat(loc(), { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, i, 1)))]);
+  const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+  return `<select id="p-bm" aria-label="${esc(T('person.birthday'))}"><option value="">–</option>${months.map(([v, l]) => `<option value="${v}" ${v === m ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select><select id="p-bd" aria-label="${esc(T('person.birthday'))}"><option value="">–</option>${days.map((v) => `<option value="${v}" ${v === d ? 'selected' : ''}>${Number(v)}</option>`).join('')}</select>`;
+}
+
 async function personView(id) {
   let p;
   try { p = await api('/api/people/' + encodeURIComponent(id)); } catch { p = null; }
@@ -253,7 +261,7 @@ async function personView(id) {
     <ul class="list">
  <li><label class="row"><span class="body"><span class="t">${esc(T('person.name'))}</span></span><input type="text" id="p-name" value="${esc(p.name || '')}" placeholder="${esc(T('person.name.ph'))}" autocomplete="off" enterkeyhint="done" maxlength="40"></label></li>
       <li><label class="row"><span class="body"><span class="t">${esc(T('person.relation'))}</span></span><input type="text" id="p-rel" value="${esc(p.relation || '')}" autocomplete="off" enterkeyhint="done" maxlength="30"></label></li>
-      <li><label class="row"><span class="body"><span class="t">${esc(T('person.birthday'))}</span><span class="s">${esc(bday || T('person.birthday.none'))}</span></span><input type="date" id="p-bday" value="${p.birthday ? '2000-' + esc(p.birthday) : ''}" style="font-size:17px;border:0;background:var(--fill);border-radius:10px;min-height:40px;padding:0 8px;color:var(--label)"></label></li>
+      <li><div class="row"><span class="body"><span class="t">${esc(T('person.birthday'))}</span><span class="s">${esc(bday || T('person.birthday.none'))}</span></span><span class="bday">${bdaySelects(p.birthday)}</span></div></li>
     </ul>
     <div class="actions" style="justify-content:flex-end;margin-top:8px"><button class="btn" type="button" id="p-save">${esc(T('person.save'))}</button></div>`;
   for (const k of kinds) {
@@ -264,7 +272,8 @@ async function personView(id) {
   html += `<div class="actions" style="margin-top:28px"><button class="btn danger wide" type="button" id="p-forget">${esc(T('person.forget', { name: pname(p) }))}</button></div></main>${tabbar('people')}`;
   root.innerHTML = html;
   document.getElementById('p-save').onclick = (e) => act(e.currentTarget, async () => {
-    const v = document.getElementById('p-bday').value;
+    const m = document.getElementById('p-bm').value, d = document.getElementById('p-bd').value;
+    const v = m && d ? `2000-${m}-${d}` : '';
     await api(`/api/people/${encodeURIComponent(p.id)}`, { name: document.getElementById('p-name').value, relation: document.getElementById('p-rel').value, birthday: v ? v.slice(5) : null });
     toast(T('toast.saved')); await load(); personView(p.id);
   });

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Screenshots of tonight's card in mcp-voice-host (Echo Show 15 / Show 8 / phone frames), light and dark.
+//   ELEMENT=#device captures the device frame only (gallery).
 //   MASK=1 blurs names, notes and quotes (screenshots of real data).
 //   HOST_URL=http://localhost:4290 OUT=./shots PLAYWRIGHT_CORE=<path to playwright-core> CHROME_PATH=<chrome> node scripts/shoot-echo.mjs
 // Prints page errors and horizontal overflow; exits 1 if any.
@@ -40,7 +41,8 @@ for (const s of shots) {
   const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   if (over > 0) errs.push(`horizontal overflow ${over}px`);
   const f = path.join(OUT, `${device}-${theme}${process.env.CLICK ? '-' + process.env.CLICK : ''}.png`);
-  await page.screenshot({ path: f });
+  if (process.env.ELEMENT) await (await page.$(process.env.ELEMENT)).screenshot({ path: f });
+  else await page.screenshot({ path: f });
   console.log(f, errs.length ? 'ERRORS: ' + errs.join(' | ') : 'ok');
   bad += errs.length;
   await ctx.close();

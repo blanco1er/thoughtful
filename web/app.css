@@ -144,6 +144,10 @@ a.row:active, button.row:active { background: var(--fill); }
 .status.ok::before { background: var(--ok); }
 
 .note { padding: 14px 16px; display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); }
+.bday { display: flex; gap: 6px; flex: none; }
+.bday select { font-size: 17px; border: 0; background: var(--fill); border-radius: var(--r-sm); min-height: 44px; padding: 0 8px; color: var(--label); }
+.note .top .btn { flex: none; white-space: nowrap; }
+.btn { white-space: nowrap; }
 .note .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .note .kind { font-size: 13px; color: var(--label-2); font-weight: 600; }
 
