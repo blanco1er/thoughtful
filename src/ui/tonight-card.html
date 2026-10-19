@@ -114,6 +114,7 @@ const loc = () => (lang === 'fr' ? 'fr-FR' : 'en-US');
 const dayLabel = (d) => new Intl.DateTimeFormat(loc(), { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(d + 'T12:00:00Z'));
 const shortDate = (ms) => new Intl.DateTimeFormat(loc(), { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(ms));
 const money = (n, c) => new Intl.NumberFormat(loc(), { style: 'currency', currency: c || 'USD', maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
+const pname = (p) => (p?.name ? p.name : T('person.unnamed', { date: p?.since ? shortDate(p.since) : '' }));
 const initial = (n) => esc(String(n || '?').trim().charAt(0).toUpperCase());
 const when = (d) => (d === 0 ? T('when.today') : d === 1 ? T('when.tomorrow') : T('when.in', { d }));
 
@@ -141,10 +142,10 @@ function summary(c) {
   const see = c.elements.find((e) => e.type === 'see');
   const conf = c.elements.find((e) => e.type === 'confirm');
   const prom = c.elements.find((e) => e.type === 'promise');
-  if (occ) bits.push(occ.kind === 'birthday' ? T(occ.daysLeft === 0 ? 'tonight.sum.birthday.0' : occ.daysLeft === 1 ? 'tonight.sum.birthday.1' : 'tonight.sum.birthday', { name: occ.person.name, d: occ.daysLeft }) : T('tonight.sum.occasion', { name: occ.person.name, what: T('occasion.' + occ.kind).toLowerCase(), d: occ.daysLeft }));
-  if (see) bits.push(T('tonight.sum.see', { name: see.person.name, when: when(see.daysLeft) }));
+  if (occ) bits.push(occ.kind === 'birthday' ? T(occ.daysLeft === 0 ? 'tonight.sum.birthday.0' : occ.daysLeft === 1 ? 'tonight.sum.birthday.1' : 'tonight.sum.birthday', { name: pname(occ.person), d: occ.daysLeft }) : T('tonight.sum.occasion', { name: pname(occ.person), what: T('occasion.' + occ.kind).toLowerCase(), d: occ.daysLeft }));
+  if (see) bits.push(T('tonight.sum.see', { name: pname(see.person), when: when(see.daysLeft) }));
   if (conf) bits.push(T(conf.left > 1 ? 'tonight.sum.confirm.n' : 'tonight.sum.confirm', { n: conf.left }));
-  if (prom) bits.push(T('tonight.sum.promise', { name: prom.person.name }));
+  if (prom) bits.push(T('tonight.sum.promise', { name: pname(prom.person) }));
   if (!bits.length) return '';
   const s = bits.map((b, i) => (i ? b.charAt(0).toLowerCase() + b.slice(1) : b));
   return s.length === 1 ? s[0] + '.' : s.slice(0, -1).join(', ') + (lang === 'fr' ? ' et ' : ', and ') + s[s.length - 1] + '.';
@@ -172,8 +173,8 @@ function render() {
     // three gifts on the right), then "Hide" brings the evening back. Covered again after 10 minutes anyway.
     const e = occ;
     html += `<section class="moment focus"><div class="col"><p class="kicker">${esc(T('occasion.' + e.kind))} · ${esc(dayLabel(e.date))}</p>
-      <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)} <span>· ${esc(when(e.daysLeft))}</span></p></div>
-      ${e.evidence.slice(0, 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p><p class="quote">“${esc(n.quote)}”</p>`).join('') || `<p class="meta">${esc(T('occasion.noWords', { name: e.person.name }))}</p>`}
+      <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(pname(e.person))} <span>· ${esc(when(e.daysLeft))}</span></p></div>
+      ${e.evidence.slice(0, 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p><p class="quote">“${esc(n.quote)}”</p>`).join('') || `<p class="meta">${esc(T('occasion.noWords', { name: pname(e.person) }))}</p>`}
       ${extrasBlock(e, 'place')}
       <div class="actions"><button class="plain" data-act="hide">${esc(T('occasion.hide'))}</button></div></div>
       <div class="col">${extrasBlock(e, 'gifts')}</div></section>`;
@@ -187,26 +188,26 @@ function render() {
     if (e.type === 'confirm') {
       const relTxt = e.person.relation ? ` <span>· ${esc(rel(e.person.relation))}</span>` : '';
       html += `<section class="moment"><p class="kicker">${esc(T('confirm.title'))}</p>
-        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)}${relTxt}<br>${esc(e.item.text)}</p></div>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(pname(e.person))}${relTxt}<br>${esc(e.item.text)}</p></div>
         ${quoteBlock(e.item)}
         <div class="actions"><button class="primary" data-act="yes" data-id="${esc(e.item.id)}">${esc(T('confirm.yes'))}</button><button data-act="no" data-id="${esc(e.item.id)}">${esc(T('confirm.no'))}</button></div></section>`;
     } else if (e.type === 'occasion') {
       html += `<section class="moment"><p class="kicker">${esc(T('occasion.' + e.kind))} · ${esc(dayLabel(e.date))}</p>
-        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)} <span>· ${esc(when(e.daysLeft))}</span></p></div>`;
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(pname(e.person))} <span>· ${esc(when(e.daysLeft))}</span></p></div>`;
       if (!revealed) {
-        html += `<div class="cover"><p><strong>${esc(T('occasion.hidden.t', { name: e.person.name }))}</strong>${esc(T('occasion.hidden.d'))}</p><button data-act="show">${esc(T('occasion.show'))}</button></div>`;
+        html += `<div class="cover"><p><strong>${esc(T('occasion.hidden.t', { name: pname(e.person) }))}</strong>${esc(T('occasion.hidden.d'))}</p><button data-act="show">${esc(T('occasion.show'))}</button></div>`;
       } else {
-        html += e.evidence.length ? e.evidence.slice(0, shared ? 1 : 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p>${shared ? '' : quoteBlock(n)}`).join('') : `<p class="meta">${esc(T('occasion.noWords', { name: e.person.name }))}</p>`;
+        html += e.evidence.length ? e.evidence.slice(0, shared ? 1 : 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p>${shared ? '' : quoteBlock(n)}`).join('') : `<p class="meta">${esc(T('occasion.noWords', { name: pname(e.person) }))}</p>`;
         html += extrasBlock(e);
         html += `<div class="actions">${shared ? `<button class="plain" data-act="hide">${esc(T('occasion.hide'))}</button>` : ''}</div>`;
       }
       html += `</section>`;
     } else if (e.type === 'see') {
-      html += `<section class="moment"><p class="kicker">${esc(T('see.title', { name: e.person.name }))} · ${esc(dayLabel(e.date))}</p>
+      html += `<section class="moment"><p class="kicker">${esc(T('see.title', { name: pname(e.person) }))} · ${esc(dayLabel(e.date))}</p>
         <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.plan.text)}</p></div>
         ${e.evidence.map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p>${quoteBlock(n)}`).join('')}</section>`;
     } else if (e.type === 'promise') {
-      html += `<section class="moment"><p class="kicker">${esc(T('promise.title', { name: e.person.name }))}</p>
+      html += `<section class="moment"><p class="kicker">${esc(T('promise.title', { name: pname(e.person) }))}</p>
         <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.item.text)}</p></div>
         ${quoteBlock(e.item)}
         ${e.reminder ? `<p class="meta">${esc(T('promise.planned', { when: shortDate(e.reminder.dueAt) }))}</p>` : ''}
@@ -226,7 +227,7 @@ function extrasBlock(e, part = 'all') {
   const g = extras.gifts || {};
   if (part === 'place') { /* gifts drawn elsewhere */ }
   else if (g.products?.length) {
-    h += `<p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" data-link="${esc(p.url)}"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))}</span>${p.merchant ? `<span class="merchant">${esc(p.merchant)}</span>` : ''}</div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p>`;
+    h += `<p class="kicker">${esc(T('occasion.gifts', { name: pname(e.person) }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" data-link="${esc(p.url)}"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))}</span>${p.merchant ? `<span class="merchant">${esc(p.merchant)}</span>` : ''}</div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p>`;
   } else if (g.status === 'no_key') h += `<p class="small">${esc(T('occasion.gifts.nokey'))}</p>`;
   else if (g.status === 'error') h += `<p class="small">${esc(T('occasion.gifts.error'))}</p>`;
   else if (e.giftQuery) h += `<p class="small">${esc(T('occasion.gifts.none'))}</p>`;

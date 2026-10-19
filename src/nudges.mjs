@@ -5,6 +5,7 @@
 //   - never while paused.
 import { newId } from './store.mjs';
 import { localDay, daysBetween, nextBirthday } from './ritual.mjs';
+import { nameOf } from './notebook.mjs';
 
 const MIN = 60_000;
 export const POSTPONE_MIN = 10;
@@ -59,7 +60,7 @@ export function deriveNudges(state, { now = Date.now(), tz = 'Europe/Paris', lan
     if (!ev.start || localDay(ev.start, tz) !== today) continue;
     const hay = (ev.title + ' ' + (ev.attendees || []).join(' ')).toLowerCase();
     for (const p of Object.values(people)) {
-      if (p.status !== 'confirmed' || !p.name) continue;
+      if (p.status !== 'confirmed' || !p.name) continue; // an unnamed person cannot be matched in a calendar
       if (hay.includes(p.name.toLowerCase())) seeing.push({ pid: p.id, at: ev.start - 30 * MIN, key: `cal:${p.id}:${today}` });
     }
   }
@@ -68,7 +69,7 @@ export function deriveNudges(state, { now = Date.now(), tz = 'Europe/Paris', lan
     if (!news) continue;
     const p = people[s.pid];
     const n = planNudge(state, { key: s.key, personId: s.pid, itemId: news.id, kind: 'see', dueAt: Math.max(now, s.at), now,
-      text: `${fr ? 'Avant de voir' : 'Seeing'} ${p.name}: ${line(news)}` });
+      text: `${fr ? 'Avant de voir' : 'Seeing'} ${nameOf(p, lang)}: ${line(news)}` });
     if (n) planned.push(n);
   }
 
@@ -78,7 +79,7 @@ export function deriveNudges(state, { now = Date.now(), tz = 'Europe/Paris', lan
     const b = nextBirthday(p.birthday, today);
     if (!b || daysBetween(today, b) !== 7) continue;
     const n = planNudge(state, { key: `bday7:${p.id}:${b}`, personId: p.id, kind: 'occasion', dueAt: Math.max(now, atLocal(today, '09:00', tz)), now,
-      text: fr ? `Anniversaire de ${p.name} dans 7 jours. Idées prêtes dans Thoughtful.` : `${p.name}'s birthday in 7 days. Ideas are ready in Thoughtful.` });
+      text: fr ? `Anniversaire de ${nameOf(p, lang)} dans 7 jours. Idées prêtes dans Thoughtful.` : `${nameOf(p, lang)}'s birthday in 7 days. Ideas are ready in Thoughtful.` });
     if (n) planned.push(n);
   }
   return planned;

@@ -106,6 +106,9 @@ export function createEngine({ store, source, extractor, tz: tzOpt, now: nowFn =
           for (const d of dropped) { counts.setAside[d.reason] = (counts.setAside[d.reason] || 0) + 1; diag.rejected[d.reason] = (diag.rejected[d.reason] || 0) + 1; }
           keptAll.push(...kept);
         }
+        // "?" = the other speaker of this conversation, never named: one placeholder person per conversation,
+        // shown as "someone you talked with on <date>" until the owner names them.
+        for (const it of keptAll) if (it.person === '?') { it.person = '?c' + c.id; it.unnamedSince = conv.startTime || now; }
         const unique = dedupeItems(keptAll);
         diag.kept = unique.length;
         diag.rejected.duplicate_across_windows = keptAll.length - unique.length || undefined;

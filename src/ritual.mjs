@@ -36,7 +36,7 @@ export function tonight(state, { now = Date.now(), tz = 'Europe/Paris', lang = '
   const people = state.people;
   const items = Object.values(state.items);
   const alive = (p) => p && !['dismissed', 'forgotten'].includes(p.status);
-  const person = (id) => { const p = people[id]; return p ? { id: p.id, name: p.name, relation: p.relation, status: p.status } : null; };
+  const person = (id) => { const p = people[id]; return p ? { id: p.id, name: p.name, relation: p.relation, status: p.status, ...(p.unnamed ? { unnamed: true, since: p.since } : {}) } : null; };
   const elements = [];
 
   // 1. One note to confirm

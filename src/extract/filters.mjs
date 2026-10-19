@@ -117,6 +117,7 @@ export function guardItems(rawItems, { transcriptText, utterances, ownerName, so
     const why = (r) => dropped.push({ reason: r, kind: it.kind });
     if (!it.kind || !it.textEn) { why('malformed'); continue; }
     if (!it.person || /^(unknown|owner|other|\[.*\])$/i.test(it.person)) { why('no_person'); continue; }
+    if (it.person === '?' && it.kind === 'promise') { /* a promise to an unnamed person is still useful */ }
     if (raw.sensitive === true || isSensitive(it.textEn, it.textFr, it.quote)) { why('sensitive'); continue; }
     if (raw.media === true || looksLikeMedia(it.quote, it.textEn)) { why('media'); continue; }
     if (it.confidence < MIN_CONFIDENCE) { why('low_confidence'); continue; }

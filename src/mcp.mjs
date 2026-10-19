@@ -32,7 +32,7 @@ function relTable() {
 }
 function pickCardStrings(lang) {
   const out = {};
-  for (const k of Object.keys(STRINGS.en)) if (/^(tonight|confirm|occasion|see|promise|kind|when|date|app|place)\./.test(k)) out[k] = STRINGS[lang][k] ?? STRINGS.en[k];
+  for (const k of Object.keys(STRINGS.en)) if (/^(tonight|confirm|occasion|see|promise|kind|when|date|app|place|person)\./.test(k)) out[k] = STRINGS[lang][k] ?? STRINGS.en[k];
   return out;
 }
 
@@ -41,6 +41,7 @@ const fmtDay = (d, lang) => new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'e
 /** The sentence an assistant says for tonight's card. Never mentions a gift or a quote (the room may not be private). */
 export function spokenTonight(card, lang = 'en') {
   const fr = lang === 'fr';
+  card = { ...card, elements: card.elements.map((e) => (e.person && !e.person.name ? { ...e, person: { ...e.person, name: fr ? 'quelqu’un' : 'someone' } } : e)) };
   const parts = [];
   for (const e of card.elements) {
     if (e.type === 'confirm') parts.push(fr ? `une note sur ${e.person.name} à confirmer` : `a note about ${e.person.name} to confirm`);

@@ -98,3 +98,29 @@ test('errors are explained in plain words (no "internal")', () => {
   assert.match(friendlyError(Object.assign(new Error('x'), { code: 'spend_cap' })), /Spending cap/);
   assert.match(friendlyError(new Error('Not logged in')), /bee login/);
 });
+
+test('a never-named speaker becomes one "someone" per conversation, until the owner names them', async () => {
+  const conv = { id: 91, state: 'COMPLETED', startTime: T0 - 3600e3, updatedAt: T0 - 600e3, shortSummary: '', summary: '', utterances: [
+    { speaker: 'Sam', text: 'Alors, tes vacances ?', at: T0 - 3600e3 },
+    { speaker: 'Unknown', text: "Super. J'aimerais tellement apprendre à faire du pain au levain.", at: T0 - 3590e3 },
+    { speaker: 'Sam', text: 'Je te prête mon livre sur le levain, promis.', at: T0 - 3580e3 },
+    { speaker: 'Unknown', text: 'Merci !', at: T0 - 3570e3 },
+  ] };
+  const ex = { name: 'fake', async conversation() { return { items: [
+    { person: '?', kind: 'wish', text_en: 'Would love to learn sourdough baking', quote: "J'aimerais tellement apprendre à faire du pain au levain", confidence: 0.9 },
+    { person: '?', kind: 'promise', text_en: 'Lend the sourdough book', quote: 'Je te prête mon livre sur le levain, promis', confidence: 0.9 },
+  ] }; }, async facts() { return { items: [] }; } };
+  const store = openStore(tmpDir(), 'live');
+  const engine = createEngine({ store, source: fakeSource({ conversations: [conv] }), extractor: ex, now: () => T0 });
+  const r = await engine.sync();
+  assert.equal(r.conversations[0].kept, 2);
+  const people = Object.values(store.state.people);
+  assert.equal(people.length, 1);
+  assert.equal(people[0].unnamed, true);
+  assert.equal(people[0].name, '');
+  const { confirmPerson, nameOf } = await import('../src/notebook.mjs');
+  assert.match(nameOf(people[0]), /^someone \(/);
+  confirmPerson(store.state, people[0].id, { name: 'Inès' });
+  assert.equal(nameOf(store.state.people[people[0].id]), 'Inès');
+  assert.equal(store.state.people[people[0].id].unnamed, undefined);
+});

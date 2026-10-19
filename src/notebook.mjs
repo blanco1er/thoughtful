@@ -17,14 +17,15 @@ export function findPerson(state, name) {
     || null;
 }
 
-export function upsertPerson(state, { name, relation }, now = Date.now()) {
-  const found = findPerson(state, name);
+export function upsertPerson(state, { name, relation, since }, now = Date.now()) {
+  const found = String(name).startsWith('?') ? Object.values(state.people).find((p) => (p.aliases || []).includes(String(name))) : findPerson(state, name);
   if (found) {
     if (!found.relation && relation) found.relation = relation;
     return found;
   }
   // Never create a confirmed person from a guess (Bee sometimes mixes family members): "suggested" until the owner says yes.
-  const p = { id: newId('p'), name: String(name).trim(), relation: relation || '', aliases: [], birthday: null, status: 'suggested', createdAt: now };
+  const unnamed = String(name).startsWith('?');
+  const p = { id: newId('p'), name: unnamed ? '' : String(name).trim(), relation: relation || '', aliases: unnamed ? [String(name)] : [], birthday: null, status: 'suggested', createdAt: now, ...(unnamed ? { unnamed: true, since: now } : {}) };
   state.people[p.id] = p;
   return p;
 }
@@ -42,6 +43,7 @@ export function mergeItems(state, items, { sourceId, sourceType = 'conversation'
   const added = [];
   for (const it of items) {
     const person = upsertPerson(state, { name: it.person, relation: it.relation }, now);
+    if (person.unnamed && it.unnamedSince) person.since = it.unnamedSince;
     const dup = Object.values(state.items).find((x) => x.personId === person.id && x.kind === it.kind && x.status !== 'forgotten' && (similar(x.textEn, it.textEn) || (x.quote && x.quote === it.quote)));
     if (dup) {
       // Heard again: more evidence, same item. Keep the most recent quote as the freshest proof.
@@ -75,8 +77,10 @@ export function expire(state, now = Date.now()) {
 
 // ---------- decisions (always an explicit tap or voice answer from the owner) ----------
 
+export const nameOf = (p, lang = 'en') => (p?.name ? p.name : (lang === 'fr' ? 'quelqu’un' : 'someone') + (p?.since ? ` (${new Date(p.since).toISOString().slice(0, 10)})` : ''));
+
 export function factTextFor(item, person) {
-  const who = `${person.name}${person.relation ? ` (${person.relation})` : ''}`;
+  const who = `${nameOf(person)}${person.relation ? ` (${person.relation})` : ''}`;
   const when = new Date(item.saidAt).toISOString().slice(0, 10);
   const verb = { like: 'likes:', wish: 'would love:', life: 'news:', date: 'important date:', plan: 'plan:', promise: 'I promised:' }[item.kind] || '';
   return `${who} ${verb} ${item.textEn}${item.eventDate ? ` (${item.eventDate})` : ''}. Heard by Bee on ${when}, kept with Thoughtful.`.slice(0, 300);
@@ -160,7 +164,7 @@ export function confirmPerson(state, id, { name, relation, birthday } = {}) {
   const p = state.people[id];
   if (!p) throw Object.assign(new Error('not_found'), { status: 404 });
   p.status = 'confirmed';
-  if (name && name.trim()) p.name = name.trim().slice(0, 40);
+  if (name && name.trim()) { p.name = name.trim().slice(0, 40); delete p.unnamed; }
   if (relation !== undefined) p.relation = String(relation).trim().slice(0, 30);
   if (birthday !== undefined) p.birthday = /^\d{2}-\d{2}$/.test(birthday) ? birthday : null;
   return p;
@@ -169,7 +173,7 @@ export function confirmPerson(state, id, { name, relation, birthday } = {}) {
 export function personView(state, p, lang = 'en') {
   const items = Object.values(state.items).filter((i) => i.personId === p.id && ['confirmed', 'pending'].includes(i.status));
   return {
-    id: p.id, name: p.name, relation: p.relation, birthday: p.birthday, status: p.status,
+    id: p.id, name: p.name, unnamed: !!p.unnamed, since: p.since || null, relation: p.relation, birthday: p.birthday, status: p.status,
     notes: items.sort((a, b) => (b.lastSaidAt || b.saidAt) - (a.lastSaidAt || a.saidAt)).map((i) => itemView(i, lang)),
   };
 }

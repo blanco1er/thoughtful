@@ -20,6 +20,8 @@ const timeAgo = (ms) => {
 };
 const money = (n, c) => new Intl.NumberFormat(loc(), { style: 'currency', currency: c || 'USD', maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
 const initial = (n) => esc(String(n || '?').trim().charAt(0).toUpperCase());
+// Someone Bee heard but nobody named: "someone you talked with on Mon, Oct 19" until the owner names them.
+const pname = (p) => (p?.name ? p.name : T('person.unnamed', { date: p?.since ? shortDate(p.since) : '' }));
 const when = (d) => (d === 0 ? T('when.today') : d === 1 ? T('when.tomorrow') : T('when.in', { d }));
 const icon = (id, cls = '') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 document.documentElement.lang = lang;
@@ -147,10 +149,10 @@ function summarySentence(c) {
   const see = c.elements.find((e) => e.type === 'see');
   const conf = c.elements.find((e) => e.type === 'confirm');
   const prom = c.elements.find((e) => e.type === 'promise');
-  if (occ) bits.push(occ.kind === 'birthday' ? T(occ.daysLeft === 0 ? 'tonight.sum.birthday.0' : occ.daysLeft === 1 ? 'tonight.sum.birthday.1' : 'tonight.sum.birthday', { name: occ.person.name, d: occ.daysLeft }) : T('tonight.sum.occasion', { name: occ.person.name, what: T('occasion.' + occ.kind).toLowerCase(), d: occ.daysLeft }));
-  if (see) bits.push(T('tonight.sum.see', { name: see.person.name, when: when(see.daysLeft) }));
+  if (occ) bits.push(occ.kind === 'birthday' ? T(occ.daysLeft === 0 ? 'tonight.sum.birthday.0' : occ.daysLeft === 1 ? 'tonight.sum.birthday.1' : 'tonight.sum.birthday', { name: pname(occ.person), d: occ.daysLeft }) : T('tonight.sum.occasion', { name: pname(occ.person), what: T('occasion.' + occ.kind).toLowerCase(), d: occ.daysLeft }));
+  if (see) bits.push(T('tonight.sum.see', { name: pname(see.person), when: when(see.daysLeft) }));
   if (conf) bits.push(T(conf.left > 1 ? 'tonight.sum.confirm.n' : 'tonight.sum.confirm', { n: conf.left }));
-  if (prom) bits.push(T('tonight.sum.promise', { name: prom.person.name }));
+  if (prom) bits.push(T('tonight.sum.promise', { name: pname(prom.person) }));
   const s = bits.map((b, i) => (i ? b.charAt(0).toLowerCase() + b.slice(1) : b));
   return s.length === 1 ? s[0] + '.' : s.slice(0, -1).join(', ') + (lang === 'fr' ? ' et ' : ', and ') + s[s.length - 1] + '.';
 }
@@ -168,24 +170,24 @@ function tonightView() {
   html += `<h1 class="title">${esc(summarySentence(c))}</h1>${sampleBanner()}${errorBanner()}`;
   for (const e of c.elements) {
     if (e.type === 'confirm') {
-      const newP = e.person.status === 'suggested' ? `<p class="meta">${esc(T('confirm.newPerson', { name: e.person.name, rel: e.person.relation ? ` (${rel(lang, e.person.relation)})` : '' }))}</p>` : '';
+      const newP = e.person.status === 'suggested' ? `<p class="meta">${esc(T('confirm.newPerson', { name: pname(e.person), rel: e.person.relation ? ` (${rel(lang, e.person.relation)})` : '' }))}</p>` : '';
       html += `<section class="moment" aria-label="${esc(T('confirm.title'))}"><p class="kicker">${esc(T('confirm.title'))}</p>
-        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)}${e.person.relation ? ` <span class="soft">· ${esc(rel(lang, e.person.relation))}</span>` : ''}<br>${esc(e.item.text)}</p></div>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(pname(e.person))}${e.person.relation ? ` <span class="soft">· ${esc(rel(lang, e.person.relation))}</span>` : ''}<br>${esc(e.item.text)}</p></div>
         ${quote(e.item)}${newP}
         <div class="actions"><button class="btn primary" type="button" data-confirm="${esc(e.item.id)}">${esc(T('confirm.yes'))}</button><button class="btn" type="button" data-reject="${esc(e.item.id)}">${esc(T('confirm.no'))}</button></div>
         <p class="small">${esc(e.left > 1 ? T('confirm.left', { n: e.left - 1 }) : T('confirm.left.0'))}</p></section>`;
     } else if (e.type === 'occasion') {
       html += `<section class="moment" aria-label="${esc(T('occasion.' + e.kind))}"><p class="kicker">${esc(T('occasion.' + e.kind))} · ${esc(dayLabel(e.date))}</p>
-        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)} <span class="soft">· ${esc(when(e.daysLeft))}</span></p></div>`;
-      html += e.evidence.length ? e.evidence.map((n) => `<p class="note-text">${esc(n.text)}</p>${quote(n)}`).join('') : `<p class="meta">${esc(T('occasion.noWords', { name: e.person.name }))}</p>`;
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(pname(e.person))} <span class="soft">· ${esc(when(e.daysLeft))}</span></p></div>`;
+      html += e.evidence.length ? e.evidence.map((n) => `<p class="note-text">${esc(n.text)}</p>${quote(n)}`).join('') : `<p class="meta">${esc(T('occasion.noWords', { name: pname(e.person) }))}</p>`;
       html += `<div id="extras">${extrasHtml(e)}</div>
         <div class="actions"><button class="btn" type="button" data-remind="${esc(e.evidence[0]?.id || '')}" data-when="in3days" ${e.evidence[0] ? '' : 'hidden'}>${esc(T('occasion.remind'))}</button></div></section>`;
     } else if (e.type === 'see') {
-      html += `<section class="moment"><p class="kicker">${esc(T('see.title', { name: e.person.name }))} · ${esc(dayLabel(e.date))}</p>
+      html += `<section class="moment"><p class="kicker">${esc(T('see.title', { name: pname(e.person) }))} · ${esc(dayLabel(e.date))}</p>
         <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.plan.text)}</p></div>
         ${e.evidence.map((n) => `<p class="note-text">${esc(n.text)}</p>${quote(n)}`).join('')}</section>`;
     } else if (e.type === 'promise') {
-      html += `<section class="moment"><p class="kicker">${esc(T('promise.title', { name: e.person.name }))}</p>
+      html += `<section class="moment"><p class="kicker">${esc(T('promise.title', { name: pname(e.person) }))}</p>
         <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.item.text)}</p></div>
         ${quote(e.item)}
         ${e.reminder ? `<p class="meta">${esc(T('promise.planned', { when: shortDate(e.reminder.dueAt) }))}</p>` : ''}
@@ -215,7 +217,7 @@ function extrasHtml(e) {
   let h = '';
   const g = extras.gifts || {};
   if (g.products?.length) {
-    h += `<section class="extra"><p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span class="price">${esc(money(p.price, p.currency))}</span>${p.merchant ? `<span class="merchant">${esc(p.merchant)}</span>` : ''}</div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p></section>`;
+    h += `<section class="extra"><p class="kicker">${esc(T('occasion.gifts', { name: pname(e.person) }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span class="price">${esc(money(p.price, p.currency))}</span>${p.merchant ? `<span class="merchant">${esc(p.merchant)}</span>` : ''}</div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p></section>`;
   } else if (e.giftQuery) {
     h += `<p class="small extra">${esc(T(g.status === 'no_key' ? 'occasion.gifts.nokey' : g.status === 'error' ? 'occasion.gifts.error' : 'occasion.gifts.none'))}</p>`;
   }
@@ -231,7 +233,7 @@ function peopleView() {
   if (!people.length) {
     html += `<div class="empty"><svg class="mark" aria-hidden="true"><use href="#i-people"/></svg><h2>${esc(T('people.empty.t'))}</h2><p>${esc(T('people.empty.d'))}</p></div>`;
   } else {
-    const row = (p) => `<li class="has-mono"><a class="row" href="#/people/${encodeURIComponent(p.id)}"><div class="mono sm" aria-hidden="true">${initial(p.name)}</div><span class="body"><span class="t">${esc(p.name)}</span><span class="s">${esc([rel(lang, p.relation), p.notes ? T(p.notes === 1 ? 'people.notes' : 'people.notes.n', { n: p.notes }) : '', p.pending ? T('note.pending') : ''].filter(Boolean).join(' · '))}</span></span>${icon('chev', 'chev')}</a></li>`;
+    const row = (p) => `<li class="has-mono"><a class="row" href="#/people/${encodeURIComponent(p.id)}"><div class="mono sm" aria-hidden="true">${initial(p.name)}</div><span class="body"><span class="t">${esc(pname(p))}</span><span class="s">${esc([rel(lang, p.relation), p.notes ? T(p.notes === 1 ? 'people.notes' : 'people.notes.n', { n: p.notes }) : '', p.pending ? T('note.pending') : ''].filter(Boolean).join(' · '))}</span></span>${icon('chev', 'chev')}</a></li>`;
     const conf = people.filter((p) => p.status === 'confirmed');
     const sugg = people.filter((p) => p.status !== 'confirmed');
     if (conf.length) html += `<ul class="list">${conf.map(row).join('')}</ul>`;
@@ -247,8 +249,9 @@ async function personView(id) {
   const kinds = ['life', 'wish', 'like', 'date', 'plan', 'promise'];
   const bday = p.birthday ? new Intl.DateTimeFormat(loc(), { month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(`2000-${p.birthday}T12:00:00Z`)) : '';
   let html = `<main class="app"><div class="topbar"><a class="back" href="#/people">${icon('back')}${esc(T('person.back'))}</a>${langSwitch()}</div>
-    <div class="person-head"><div class="mono" aria-hidden="true">${initial(p.name)}</div><div><h1>${esc(p.name)}</h1><p>${esc(rel(lang, p.relation))}</p></div></div>
+    <div class="person-head"><div class="mono" aria-hidden="true">${initial(p.name)}</div><div><h1>${esc(pname(p))}</h1><p>${esc(rel(lang, p.relation))}</p></div></div>
     <ul class="list">
+ <li><label class="row"><span class="body"><span class="t">${esc(T('person.name'))}</span></span><input type="text" id="p-name" value="${esc(p.name || '')}" placeholder="${esc(T('person.name.ph'))}" autocomplete="off" enterkeyhint="done" maxlength="40"></label></li>
       <li><label class="row"><span class="body"><span class="t">${esc(T('person.relation'))}</span></span><input type="text" id="p-rel" value="${esc(p.relation || '')}" autocomplete="off" enterkeyhint="done" maxlength="30"></label></li>
       <li><label class="row"><span class="body"><span class="t">${esc(T('person.birthday'))}</span><span class="s">${esc(bday || T('person.birthday.none'))}</span></span><input type="date" id="p-bday" value="${p.birthday ? '2000-' + esc(p.birthday) : ''}" style="font-size:17px;border:0;background:var(--fill);border-radius:10px;min-height:40px;padding:0 8px;color:var(--label)"></label></li>
     </ul>
@@ -258,15 +261,15 @@ async function personView(id) {
     if (!notes.length) continue;
     html += `<h2 class="section">${esc(T('kind.' + k))}</h2><ul class="list">${notes.map((n) => `<li><div class="note"><div class="top"><span class="note-text">${esc(n.text)}</span><button class="btn plain" type="button" data-forget="${esc(n.id)}" style="min-height:44px">${esc(T('note.forget'))}</button></div>${quote(n)}<p class="small">${esc(n.status === 'pending' ? T('note.pending') : n.inBee ? T('note.inBee') : '')}</p></div></li>`).join('')}</ul>`;
   }
-  html += `<div class="actions" style="margin-top:28px"><button class="btn danger wide" type="button" id="p-forget">${esc(T('person.forget', { name: p.name }))}</button></div></main>${tabbar('people')}`;
+  html += `<div class="actions" style="margin-top:28px"><button class="btn danger wide" type="button" id="p-forget">${esc(T('person.forget', { name: pname(p) }))}</button></div></main>${tabbar('people')}`;
   root.innerHTML = html;
   document.getElementById('p-save').onclick = (e) => act(e.currentTarget, async () => {
     const v = document.getElementById('p-bday').value;
-    await api(`/api/people/${encodeURIComponent(p.id)}`, { relation: document.getElementById('p-rel').value, birthday: v ? v.slice(5) : null });
+    await api(`/api/people/${encodeURIComponent(p.id)}`, { name: document.getElementById('p-name').value, relation: document.getElementById('p-rel').value, birthday: v ? v.slice(5) : null });
     toast(T('toast.saved')); await load(); personView(p.id);
   });
   document.getElementById('p-forget').onclick = async (e) => {
-    const ok = await confirmAlert({ title: T('person.forget.q', { name: p.name }), detail: T('person.forget.d', { name: p.name }), ok: T('note.forget') });
+    const ok = await confirmAlert({ title: T('person.forget.q', { name: pname(p) }), detail: T('person.forget.d', { name: pname(p) }), ok: T('note.forget') });
     if (!ok) return;
     await act(e.currentTarget, async () => { await api(`/api/people/${encodeURIComponent(p.id)}/forget`, {}); toast(T('toast.forgot')); await load(); location.hash = '#/people'; });
   };

@@ -15,7 +15,7 @@ const CASES = [
   { conv: C(1, [['Sam', 'Alors Inès, ce nouveau poste ?'], ['Unknown', "Je commence lundi chez un éditeur, je suis ravie. Par contre mon vieux vélo a rendu l'âme."], ['Sam', 'Je te prête le mien en attendant, promis.'], ['Unknown', 'Trop gentil !']]),
     expect: [['Inès', 'life'], ['Inès', 'wish'], ['Inès', 'promise']], never: [] },
   { conv: C(2, [['Sam', 'How is your mum, Karim?'], ['Unknown', 'Honestly not great, the chemo is tough on her.'], ['Unknown', 'But she still asks about the garden every day, she misses her roses.'], ['Sam', 'Give her my love.']]),
-    expect: [], never: [/chemo|cancer|sick|ill/i] },
+    expect: [], never: [/chemo|cancer|sick|\bill\b/i] },
   { conv: C(3, [['Unknown', 'And now the weather for the weekend across the north east.'], ['Unknown', 'This programme is sponsored by a mattress company.'], ['Unknown', 'Stay tuned after the break for the best gadgets of the year.'], ['Unknown', 'Our guest would love a vintage Leica camera.']]),
     expect: [], never: [/Leica|camera/i], gate: true },
   { conv: C(4, [['Sam', 'Mamie, tu fais quoi pour ton anniversaire le 3 novembre ?'], ['Unknown', 'Rien de spécial, mais j\'adorerais retourner voir la mer à Étretat.'], ['Sam', 'On y va ensemble, je m\'en occupe.']]),

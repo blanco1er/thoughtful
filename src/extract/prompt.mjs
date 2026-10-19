@@ -16,10 +16,14 @@ Strict rules:
 1. Never extract health, illness, pregnancy, death, conflicts, breakups, intimacy, politics, religion, or anyone's money/job loss. Set "sensitive": true if a candidate touches these, and it will be dropped.
    Judge EACH item on its own: a sensitive moment elsewhere in the conversation does not make a harmless item sensitive
    (a new hobby, a wish for a book, a trip). Simply do not extract the sensitive part.
-2. If the words seem to come from a TV, radio, podcast, video or song playing nearby (scripted tone, ads, a narrator), set "media": true.
+2. The owner took part in this conversation: it is real life, even when the other person talks for a long time.
+   Set "media": true only for an item whose own words clearly come from a TV, radio, podcast or video playing nearby (ads, a presenter, a show).
 3. Never guess. If you are not sure who the person is, or if it was a joke or hypothetical, lower "confidence" (below 0.6 means drop).
 4. "quote" must be copied VERBATIM from the transcript (5 to 25 words, original language, no translation, no paraphrase).
-5. "person" is the first name as said (or the relation if no name, e.g. "my sister"). "relation" in English (sister, friend, colleague, mother, ...), empty if unknown.
+5. "person" is the first name as said, or the relation ("my sister"). The main [UNKNOWN] speaker is often never named in a
+   one-to-one talk. Find it first: the owner calling them by name ("Léa, …", "…, Jo?"), a removed line "addressed to <Name>",
+   or Bee's summary. Only if none of these exists, use "?" (the owner will be asked who it was).
+   Never use "?" for someone who is only mentioned. "relation" in English (sister, friend, colleague, mother, ...), empty if unknown.
 6. "text_en" is a short English note (max 12 words) written about the person, e.g. "Would love to learn pottery". "text_fr" is the same note in natural French.
    For a promise, write the action the owner has to do, e.g. "Send her the pottery studio link" / "Lui envoyer le lien de l'atelier".
 7. event_date as YYYY-MM-DD if a date can be computed from what was said and the CONVERSATION date (not today), else null. date_kind: birthday | anniversary | other | null.
@@ -104,7 +108,7 @@ export function userMessage({ conv, ownerName, people, today, timezone, part }) 
 People already in the notebook:
 ${known}
 
-Bee's short summary of this conversation: ${conv.shortSummary || '(none)'}
+Bee's summary of this conversation: ${String(conv.summary || conv.shortSummary || '(none)').slice(0, 1500)}
 
 ${part && part.n > 1 ? `This is part ${part.i} of ${part.n} of a long conversation (parts overlap a little). Extract only what this part says.\n\n` : ''}Transcript (lines marked as removed were private and must be ignored):
 ${transcriptFor(part ? { utterances: part.utterances } : conv, ownerName, 1e9, { redact: true })}`;

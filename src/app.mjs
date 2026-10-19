@@ -8,7 +8,7 @@ import { createLiveSource } from './bee.mjs';
 import { createSampleSource, createReplayExtractor, SAMPLE_HOME_AREA, loadRecording } from './sample.mjs';
 import { createBedrockExtractor, checkAwsCredentials } from './extract/bedrock.mjs';
 import { createEngine, friendlyError } from './engine.mjs';
-import { confirmItem, rejectItem, forgetItem, markDone, confirmPerson, personView } from './notebook.mjs';
+import { confirmItem, rejectItem, forgetItem, markDone, confirmPerson, personView, nameOf } from './notebook.mjs';
 import { tonight, localDay } from './ritual.mjs';
 import { planNudge, atLocal } from './nudges.mjs';
 import { findGifts, findPlace, findPlaceOsm, keysStatus } from './lookups.mjs';
@@ -128,7 +128,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       const s = S();
       return Object.values(s.people).filter((p) => ['confirmed', 'suggested'].includes(p.status)).map((p) => {
         const items = Object.values(s.items).filter((i) => i.personId === p.id && ['confirmed', 'pending'].includes(i.status));
-        return { id: p.id, name: p.name, relation: p.relation, status: p.status, birthday: p.birthday, notes: items.filter((i) => i.status === 'confirmed').length, pending: items.filter((i) => i.status === 'pending').length, last: Math.max(0, ...items.map((i) => i.lastSaidAt || i.saidAt)) };
+        return { id: p.id, name: p.name, unnamed: !!p.unnamed, since: p.since || null, relation: p.relation, status: p.status, birthday: p.birthday, notes: items.filter((i) => i.status === 'confirmed').length, pending: items.filter((i) => i.status === 'pending').length, last: Math.max(0, ...items.map((i) => i.lastSaidAt || i.saidAt)) };
       }).filter((p) => p.status === 'confirmed' || p.pending > 0).sort((a, b) => (a.status === 'confirmed' ? 0 : 1) - (b.status === 'confirmed' ? 0 : 1) || b.last - a.last);
     },
     person(id) {
@@ -145,7 +145,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
     async confirm(id) {
       const r = await confirmItem(S(), id, { source: cur().source, log, now: now(), writeToBee: S().settings.writeToBee !== false });
       save();
-      return { ok: true, bee: r.bee, person: S().people[r.item.personId]?.name };
+      return { ok: true, bee: r.bee, person: nameOf(S().people[r.item.personId], lang()) };
     },
     reject(id) { rejectItem(S(), id, { log, now: now() }); save(); return { ok: true }; },
     async forget(id) { const r = await forgetItem(S(), id, { source: cur().source, log }); save(); return { ok: true, ...r }; },
@@ -164,8 +164,8 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       const due = atLocal(day, '09:00', tz());
       const fr = lang() === 'fr';
       const text = it.kind === 'promise'
-        ? `${fr ? 'Promis à' : 'Promised'} ${p?.name}: ${(fr && it.textFr) || it.textEn}`
-        : `${p?.name}: ${(fr && it.textFr) || it.textEn}`;
+        ? `${fr ? 'Promis à' : 'Promised'} ${nameOf(p, lang())}: ${(fr && it.textFr) || it.textEn}`
+        : `${nameOf(p, lang())}: ${(fr && it.textFr) || it.textEn}`;
       const n = planNudge(S(), { key: `remind:${id}:${day}`, itemId: id, personId: it.personId, kind: it.kind === 'promise' ? 'promise' : 'occasion', text, dueAt: due, now: now() });
       save();
       return { ok: true, dueAt: n?.dueAt || due, day, today };
