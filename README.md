@@ -102,7 +102,7 @@ AWS_PROFILE=<profile> node scripts/bench-extraction.mjs 3   # quality on 10 inve
 npm run check   # tests + private data check
 ```
 
-Last measured with Amazon Nova 2 Lite (19 Oct 2026): **93 % recall, 0 leaks** (health, conflicts, votes, debts, TV, jokes, other people's promises), 6 extra notes out of 46.
+Last measured with Amazon Nova 2 Lite (19 Oct 2026): **86 % recall, 0 leaks** (health, conflicts, votes, debts, TV, jokes, other people's promises), 4 extra notes out of 43 (measured after widening the scope to people the owner knows who are talked about).
 
 ```sh
 ```

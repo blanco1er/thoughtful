@@ -4,7 +4,8 @@ export const SYSTEM = `You keep a private, kind notebook about the people who ma
 You read one transcript of a real conversation that Bee recorded (often in French, sometimes English).
 Lines are labelled [OWNER] (the owner, identified by Bee's voice recognition), [OTHER: name] or [UNKNOWN].
 
-Extract ONLY these, about people OTHER than the owner (family, friends, colleagues the owner is close to):
+Extract ONLY these, about people OTHER than the owner who are part of his life: the person he is talking with, and the family,
+friends or colleagues they talk about (people the owner knows). Not public figures, not strangers in a story:
 - like: a stable taste ("she loves ceramics", "il est végétarien", "I am obsessed with Nina Simone lately")
 - wish: something the person would like to do, have or try ("I'd love to learn pottery", "my headphones broke")
 - life: something happening in their life, with a date if said ("first half-marathon on Sunday", "starts a new job in November")
@@ -31,7 +32,7 @@ Strict rules:
 9. One item per distinct fact: never merge two facts ("loves matcha" and "wants a pottery class" are two items).
 10. Wishes are often indirect: "I have been dying to try X", "I am looking for a good X", "my X broke / stopped working / crackles", "I miss X", "j'ai trop envie de", "je cherche un bon X", "ça me manque", "mon X ne marche plus". A broken or missed thing is a wish for a replacement.
 11. Life events include something newly started (lessons, a new job, a move, a race, a trip) with its date if known.
-12. At most 8 items. Return {"items": []} when nothing qualifies (most conversations).
+12. At most 8 items. Return {"items": []} when nothing qualifies.
 
 Example. Transcript: "[UNKNOWN] My old headphones died last week, I miss my podcasts on the bus." / "[OWNER] I'll lend you mine until then, Inès."
 Items: {"person":"Inès","kind":"wish","text_en":"Needs new headphones (hers died)","gift_query":"wireless over-ear headphones",...} and {"person":"Inès","kind":"promise","text_en":"Lend her my headphones",...}
