@@ -35,12 +35,14 @@ npx github:blanco1er/mcp-voice-host --server http://127.0.0.1:4317/mcp
 ## Use it with your own Bee
 
 1. Developer Mode in the Bee app (Settings, tap the app version 5 times), then on your Mac: `npx bee login` (from this folder).
-2. Bedrock access (Amazon Nova 2 Lite in us-east-1) with a named AWS profile: `export AWS_PROFILE=<profile>`.
+2. Bedrock access (Amazon Nova 2 Lite in us-east-1) with a named AWS profile, saved once: `node bin/thoughtful.mjs config aws-profile <profile>` (the author uses `mandat`). `THOUGHTFUL_AWS_PROFILE` or `AWS_PROFILE` override it. Settings and `doctor` say whether credentials are found.
 3. Optional, for real gift ideas and places: `scripts/set-channel3-local.sh` and `scripts/set-places-local.sh` (keys go to the macOS Keychain, never to a file).
 4. `npm start`, open http://127.0.0.1:4317, read the three promises, tick the consent line, "Use my Bee".
 5. On your iPhone (same Wi-Fi or Tailscale): `node bin/thoughtful.mjs serve --host 0.0.0.0` prints a one-time pairing link.
 
-`node bin/thoughtful.mjs doctor` checks the Bee CLI, the AWS profile and the keys (yes/no only).
+`node bin/thoughtful.mjs doctor` checks the Bee CLI, the AWS credentials and the keys (yes/no only). `node bin/thoughtful.mjs sync --reprocess-last 1` (or Settings > "Read the last conversation again") reads the latest conversation again, printing counts only.
+
+Long conversations (a family dinner can be 60 000+ characters) are read in windows of about 20 000 characters that overlap by 1 500, cut between sentences (8 windows at most per conversation); the notes of all windows are merged, each quote checked in its own window.
 
 ## How it uses Bee
 

@@ -7,6 +7,9 @@ import { config } from '../src/config.mjs';
 import { createContext } from '../src/app.mjs';
 import { createServer } from '../src/server.mjs';
 import { keysStatus } from '../src/lookups.mjs';
+import { checkAwsCredentials } from '../src/extract/bedrock.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const args = process.argv.slice(2);
 const cmd = args[0] && !args[0].startsWith('--') ? args.shift() : 'serve';
@@ -20,7 +23,8 @@ async function doctor() {
   const ok = await live.source.isConnected().catch(() => false);
   const keys = await keysStatus();
   console.log(`Bee CLI signed in ........ ${ok ? 'yes' : 'no (run: npx bee login)'}`);
-  console.log(`AWS profile .............. ${process.env.AWS_PROFILE || '(default chain)'} · model ${config.model}`);
+  const aws = await checkAwsCredentials();
+  console.log(`AWS profile .............. ${aws.profile} · credentials ${aws.ok ? 'yes' : 'no (aws sso login, or thoughtful config aws-profile <name>)'} · model ${config.model}`);
   console.log(`Channel3 key in Keychain . ${keys.channel3 ? 'yes' : 'no (scripts/set-channel3-local.sh)'}`);
   console.log(`Places key in Keychain ... ${keys.places ? 'yes' : 'no (scripts/set-places-local.sh)'}`);
   console.log(`Private data folder ...... ${config.dataDir.replace(os.homedir(), '~')}`);
@@ -28,9 +32,24 @@ async function doctor() {
 
 if (cmd === 'doctor') { await doctor(); process.exit(0); }
 
+// thoughtful config aws-profile <name>   (saved in the private data folder, used when no env variable is set)
+if (cmd === 'config') {
+  const [key, value] = args;
+  if (key !== 'aws-profile' || !value) { console.log('usage: thoughtful config aws-profile <name>'); process.exit(2); }
+  const f = path.join(config.dataDir, 'prefs.json');
+  let prefs = {}; try { prefs = JSON.parse(fs.readFileSync(f, 'utf8')); } catch {}
+  fs.mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
+  fs.writeFileSync(f, JSON.stringify({ ...prefs, awsProfile: value }), { mode: 0o600 });
+  console.log(`AWS profile for Thoughtful: ${value}`);
+  process.exit(0);
+}
+
 if (cmd === 'sync') {
   if (ctx.mode === 'sample') await ctx.ensureSampleSeed();
-  const r = await ctx.sync();
+  const n = Number(opt('--reprocess-last', 0)) || 0;
+  const r = await ctx.sync({ reprocessLast: n });
+  if (!r.ok) { console.error('Could not read Bee:', r.error); process.exit(1); }
+  for (const d of r.conversations || []) console.log(`  conversation …${d.id}: ${d.chars} chars, ${d.windows} window(s)${d.windowsSkipped ? ` (+${d.windowsSkipped} over the cap)` : ''}, raw ${d.raw}, kept ${d.kept}, new ${d.added}, parse errors ${d.parseErrors}, rejected ${JSON.stringify(d.rejected)}, kinds ${JSON.stringify(d.kinds)}`);
   const card = ctx.tonight();
   console.log(`Read ${r.read} conversation(s), ${r.notes + r.facts} new note(s), set aside: ${JSON.stringify(r.setAside)}, skipped: ${JSON.stringify(r.skipped)}`);
   console.log(`Tonight: ${card.elements.map((e) => e.type).join(', ') || 'nothing'} · ${card.counts.people} people · ${card.counts.kept} kept · ${card.counts.pending} to confirm`);

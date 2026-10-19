@@ -72,7 +72,7 @@ export function createServer(ctx, { host = '127.0.0.1', port = 4317, dataDir } =
     if (a === 'onboarding') r = ctx.onboard(body);
     else if (a === 'settings') r = ctx.settings(body);
     else if (a === 'mode') { ctx.setMode(body.mode); if (body.mode === 'sample') await ctx.ensureSampleSeed(); r = { ok: true }; }
-    else if (a === 'sync') r = await ctx.sync();
+    else if (a === 'sync') r = await ctx.sync({ reprocessLast: body.reprocessLast });
     else if (a === 'reveal') r = ctx.reveal(body.show !== false);
     else if (a === 'erase') r = await ctx.erase({ alsoBee: body.alsoBee !== false });
     else if (a === 'items' && id) {

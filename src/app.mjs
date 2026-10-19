@@ -6,8 +6,8 @@ import { config } from './config.mjs';
 import { openStore } from './store.mjs';
 import { createLiveSource } from './bee.mjs';
 import { createSampleSource, createReplayExtractor, SAMPLE_HOME_AREA, loadRecording } from './sample.mjs';
-import { createBedrockExtractor } from './extract/bedrock.mjs';
-import { createEngine } from './engine.mjs';
+import { createBedrockExtractor, checkAwsCredentials } from './extract/bedrock.mjs';
+import { createEngine, friendlyError } from './engine.mjs';
 import { confirmItem, rejectItem, forgetItem, markDone, confirmPerson, personView } from './notebook.mjs';
 import { tonight, localDay } from './ritual.mjs';
 import { planNudge, atLocal } from './nudges.mjs';
@@ -31,6 +31,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
   const prefs = (() => { try { return JSON.parse(fs.readFileSync(prefsFile, 'utf8')); } catch { return {}; } })();
   const lk = lookups || { findGifts, findPlace, findPlaceOsm, keysStatus };
   const modes = {};
+  let awsMemo = null;
   let mode = initialMode || prefs.mode || 'live';
 
   function open(m) {
@@ -73,6 +74,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
     async summary() {
       const s = S();
       const keys = await lk.keysStatus().catch(() => ({ channel3: false, places: false }));
+      if (mode === 'live' && (!awsMemo || now() - awsMemo.at > 5 * 60_000)) awsMemo = { at: now(), ...(await (lookups ? Promise.resolve({ ok: true, profile: 'test' }) : checkAwsCredentials())) };
       const ex = cur().extractor;
       return {
         mode, firstRun: ctx.firstRun(), needsOnboarding: ctx.needsOnboarding(),
@@ -85,6 +87,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
           extractor: ex.name, model: ex.name === 'bedrock' ? config.model : ex.recordedWith, recordedOn: ex.recordedOn || null,
           spendToday: s.spend.day === new Date(now()).toISOString().slice(0, 10) ? s.spend.usd : 0, spendCap: config.spendCapDayUsd,
           keys,
+          aws: mode === 'live' ? { ok: !!awsMemo?.ok, profile: awsMemo?.profile || null } : null,
         },
         sampleWrites: mode === 'sample' ? cur().source.writes : undefined,
       };
@@ -219,7 +222,11 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       c.store.save();
       return { ok: true, beeFactsDeleted: deleted };
     },
-    async sync() { const r = await cur().engine.sync(); return { ok: true, ...r }; },
+    // Never throws to the web app: the cause is returned in plain words (and kept as the banner's message).
+    async sync({ reprocessLast = 0 } = {}) {
+      try { const r = await cur().engine.sync({ reprocessLast: Math.max(0, Math.min(5, Number(reprocessLast) || 0)) }); return { ok: true, ...r }; }
+      catch (e) { return { ok: false, error: friendlyError(e) }; }
+    },
 
     /** Sample household: read it once, then replay "previous evenings" so the notebook is not empty on day one. */
     async ensureSampleSeed() {

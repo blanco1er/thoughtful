@@ -45,7 +45,7 @@ export function mergeItems(state, items, { sourceId, sourceType = 'conversation'
     const dup = Object.values(state.items).find((x) => x.personId === person.id && x.kind === it.kind && x.status !== 'forgotten' && (similar(x.textEn, it.textEn) || (x.quote && x.quote === it.quote)));
     if (dup) {
       // Heard again: more evidence, same item. Keep the most recent quote as the freshest proof.
-      dup.mentions = (dup.mentions || 1) + 1;
+      if (dup.sourceId !== sourceId) dup.mentions = (dup.mentions || 1) + 1; // re-reading the same conversation is not a new mention
       if ((saidAt || now) > (dup.saidAt || 0)) { dup.lastQuote = it.quote; dup.lastSaidAt = saidAt || now; }
       dup.confidence = Math.max(dup.confidence, it.confidence);
       continue;

@@ -299,7 +299,9 @@ function settingsView() {
     <ul class="list">
       <li><div class="row"><span class="body"><span class="t">${esc(T('set.bee'))}</span><span class="s">${esc(c.lastSyncAt ? T('set.sync.last', { when: timeAgo(c.lastSyncAt) }) : T('set.sync.never'))}</span></span><button class="btn" type="button" data-sync>${esc(T('set.sync'))}</button></div></li>
       <li><div class="row"><span class="body"><span class="t">${esc(T('set.model'))}</span><span class="s">${esc(model)}</span></span><span class="d">${esc(T('set.spend', { v: money(c.spendToday || 0, 'USD'), cap: money(c.spendCap, 'USD') }))}</span></div></li>
+      ${c.aws ? `<li><div class="row"><span class="body"><span class="t">${esc(T('set.aws'))}</span><span class="s">${esc(c.aws.profile || '')}</span></span><span class="d"><span class="status ${c.aws.ok ? 'ok' : ''}">${esc(T(c.aws.ok ? 'set.aws.ok' : 'set.aws.off'))}</span></span></div></li>` : ''}
       ${keyRow(T('set.channel3'), c.keys?.channel3)}${keyRow(T('set.places'), c.keys?.places)}
+      <li><button class="row" type="button" data-sync="last" style="color:var(--accent-text)">${esc(T('set.reread'))}</button></li>
     </ul>
     <h2 class="section">${esc(T('set.stores'))}</h2>
     <ul class="list"><li><div class="note"><p class="meta" style="color:var(--label)">${esc(T('set.stores.d'))}</p></div></li>
@@ -330,7 +332,12 @@ root.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.dataset.lang) { setLang(b.dataset.lang); await load().catch(() => {}); return route(); }
-  if (b.dataset.sync !== undefined) return act(b, async () => { const r = await api('/api/sync', {}); await load(); toast(T('toast.synced', { n: (r.notes || 0) + (r.facts || 0) })); route(); });
+  if (b.dataset.sync !== undefined) return act(b, async () => {
+    const r = await api('/api/sync', b.dataset.sync === 'last' ? { reprocessLast: 1 } : {});
+    await load();
+    toast(r.ok ? T('toast.synced', { n: (r.notes || 0) + (r.facts || 0) }) : r.error);
+    route();
+  });
   if (b.dataset.confirm) return act(b, async () => { const r = await api(`/api/items/${encodeURIComponent(b.dataset.confirm)}/confirm`, {}); toast(r.bee === 'wrote_bee_fact' || r.bee === 'confirmed_bee_fact' ? T('toast.keptBee') : T('toast.kept', { name: r.person || '' })); await load(); route(); });
   if (b.dataset.reject) return act(b, async () => { await api(`/api/items/${encodeURIComponent(b.dataset.reject)}/reject`, {}); toast(T('toast.no')); await load(); route(); });
   if (b.dataset.done) return act(b, async () => { await api(`/api/items/${encodeURIComponent(b.dataset.done)}/done`, {}); await load(); route(); });

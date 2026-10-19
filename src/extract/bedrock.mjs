@@ -1,7 +1,7 @@
 // Amazon Bedrock extractor (Converse API). The spending cap is enforced in code BEFORE each call, from a
 // worst-case estimate, and recorded AFTER from the real token usage.
-import { config, priceFor } from '../config.mjs';
-import { SYSTEM, FACTS_SYSTEM, userMessage, factsMessage, parseJson } from './prompt.mjs';
+import { config, priceFor, awsProfile } from '../config.mjs';
+import { SYSTEM, FACTS_SYSTEM, userMessage, factsMessage, parseJson, windowsFor } from './prompt.mjs';
 
 
 export class SpendCapError extends Error { constructor(m) { super(m); this.code = 'spend_cap'; } }
@@ -23,13 +23,27 @@ export function record(spend, modelId, usage = {}) {
   return usd;
 }
 
+/** yes/no: can the configured AWS profile sign a request? (never prints a credential) */
+export async function checkAwsCredentials() {
+  try {
+    const sdk = await import('@aws-sdk/client-bedrock-runtime');
+    const profile = awsProfile();
+    const c = new sdk.BedrockRuntimeClient({ region: config.region, ...(profile ? { profile } : {}) });
+    const creds = await c.config.credentials();
+    return { ok: !!creds?.accessKeyId, profile: profile || '(default chain)' };
+  } catch (e) {
+    return { ok: false, profile: awsProfile() || '(default chain)', reason: String(e?.name || 'error') };
+  }
+}
+
 export function createBedrockExtractor({ spend, sendImpl } = {}) {
   let client = null, Converse = null;
   async function send(input) {
     if (sendImpl) return sendImpl(input);
     if (!client) {
       const sdk = await import('@aws-sdk/client-bedrock-runtime');
-      client = new sdk.BedrockRuntimeClient({ region: config.region });
+      const profile = awsProfile();
+      client = new sdk.BedrockRuntimeClient({ region: config.region, ...(profile ? { profile } : {}) });
       Converse = sdk.ConverseCommand;
     }
     return client.send(new Converse(input));
@@ -59,14 +73,23 @@ export function createBedrockExtractor({ spend, sendImpl } = {}) {
   }
   return {
     name: 'bedrock',
+    // One call per window; each part keeps its own utterances so quotes are checked where they were said.
     async conversation({ conv, ownerName, people, today, timezone }) {
-      const r = await call(SYSTEM, userMessage({ conv, ownerName, people, today, timezone }));
-      return { items: r.json.items || [], modelId: r.modelId, usage: r.usage };
+      const { windows, total, skipped } = windowsFor(conv, ownerName);
+      const parts = [];
+      let modelId = null;
+      for (let i = 0; i < windows.length; i++) {
+        const w = windows[i];
+        const r = await call(SYSTEM, userMessage({ conv, ownerName, people, today, timezone, part: { i: i + 1, n: windows.length, utterances: w.utterances } }));
+        modelId = r.modelId;
+        parts.push({ items: r.json.items || [], utterances: w.utterances, parseError: !!r.json.parseError, chars: w.chars });
+      }
+      return { parts, items: parts.flatMap((p) => p.items), modelId, chars: total, windowsSkipped: skipped };
     },
     async facts({ facts, ownerName, people, today }) {
       if (!facts.length) return { items: [] };
       const r = await call(FACTS_SYSTEM, factsMessage({ facts, ownerName, people, today }), 900);
-      return { items: r.json.items || [], modelId: r.modelId, usage: r.usage };
+      return { items: r.json.items || [], modelId: r.modelId, usage: r.usage, parseError: !!r.json.parseError };
     },
   };
 }

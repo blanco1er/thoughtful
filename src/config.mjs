@@ -1,6 +1,7 @@
 // Runtime configuration. Names of environment variables only; no value is ever logged.
 import os from 'node:os';
 import path from 'node:path';
+import fs from 'node:fs';
 
 const home = os.homedir();
 const defaultDataDir = process.platform === 'darwin'
@@ -12,7 +13,8 @@ export const config = {
   dataDir: process.env.THOUGHTFUL_DATA_DIR || defaultDataDir,
   port: Number(process.env.THOUGHTFUL_PORT) || 4317,
   host: process.env.THOUGHTFUL_HOST || '127.0.0.1',
-  // Bedrock (AWS profile comes from AWS_PROFILE, region from AWS_REGION)
+  // Bedrock. AWS profile: THOUGHTFUL_AWS_PROFILE, else AWS_PROFILE, else the one saved with
+  // `thoughtful config aws-profile <name>` (prefs.json in the data folder). Region: AWS_REGION or us-east-1.
   region: process.env.AWS_REGION || 'us-east-1',
   model: process.env.THOUGHTFUL_MODEL || 'us.amazon.nova-2-lite-v1:0',
   fallbackModel: process.env.THOUGHTFUL_FALLBACK_MODEL || 'global.amazon.nova-2-lite-v1:0',
@@ -32,6 +34,12 @@ export const config = {
 
 // Approximate on-demand prices (USD per 1M tokens), rounded UP on purpose: they only feed the spending cap,
 // so the cap trips before the real bill reaches it. Check the AWS Bedrock pricing page before relying on them.
+export function awsProfile() {
+  if (process.env.THOUGHTFUL_AWS_PROFILE) return process.env.THOUGHTFUL_AWS_PROFILE;
+  if (process.env.AWS_PROFILE) return process.env.AWS_PROFILE;
+  try { return JSON.parse(fs.readFileSync(path.join(config.dataDir, 'prefs.json'), 'utf8')).awsProfile || undefined; } catch { return undefined; }
+}
+
 export const PRICES = {
   'amazon.nova-2-lite': { in: 0.33, out: 2.75 },
   'amazon.nova-lite': { in: 0.06, out: 0.24 },

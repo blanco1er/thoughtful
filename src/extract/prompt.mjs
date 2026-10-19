@@ -69,9 +69,34 @@ export function transcriptFor(conv, ownerName, maxChars = 24000, { redact = fals
   return text;
 }
 
+/**
+ * Long conversations (a 1 h 30 family dinner is ~60 000 characters) are read in windows of ~20 000 characters that
+ * overlap by ~1 500, always cut between two sentences, so the end of the conversation is read too. At most `max`
+ * windows per conversation (the spending cap still applies to every call).
+ */
+export const WINDOW = { size: 20000, overlap: 1500, max: 8 };
+export function windowsFor(conv, ownerName, { size = WINDOW.size, overlap = WINDOW.overlap, max = WINDOW.max } = {}) {
+  const u = conv.utterances;
+  const len = u.map((x) => label(x, ownerName).length + 2 + String(x.text).length);
+  const total = len.reduce((a, b) => a + b, 0);
+  const out = [];
+  let start = 0;
+  while (start < u.length) {
+    let end = start, acc = 0;
+    while (end < u.length && (acc + len[end] <= size || end === start)) acc += len[end++];
+    out.push({ from: start, to: end, chars: acc, utterances: u.slice(start, end) });
+    if (end >= u.length) break;
+    // step back ~overlap characters, on a sentence boundary, but always move forward
+    let back = end, kept = 0;
+    while (back > start + 1 && kept + len[back - 1] <= overlap) kept += len[--back];
+    start = Math.max(start + 1, back);
+  }
+  return { windows: out.slice(0, max), total, skipped: Math.max(0, out.length - max) };
+}
+
 const weekday = (ms, tz) => (ms ? new Intl.DateTimeFormat('en-GB', { timeZone: tz, weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms)) : 'unknown');
 
-export function userMessage({ conv, ownerName, people, today, timezone }) {
+export function userMessage({ conv, ownerName, people, today, timezone, part }) {
   const known = people.length
     ? people.map((p) => `- ${p.name}${p.relation ? ` (${p.relation})` : ''}${p.aliases?.length ? `; also called ${p.aliases.join(', ')}` : ''}`).join('\n')
     : '- (none yet)';
@@ -81,8 +106,8 @@ ${known}
 
 Bee's short summary of this conversation: ${conv.shortSummary || '(none)'}
 
-Transcript (lines marked as removed were private and must be ignored):
-${transcriptFor(conv, ownerName, 24000, { redact: true })}`;
+${part && part.n > 1 ? `This is part ${part.i} of ${part.n} of a long conversation (parts overlap a little). Extract only what this part says.\n\n` : ''}Transcript (lines marked as removed were private and must be ignored):
+${transcriptFor(part ? { utterances: part.utterances } : conv, ownerName, 1e9, { redact: true })}`;
 }
 
 export function factsMessage({ facts, ownerName, people, today }) {
@@ -92,9 +117,13 @@ Bee's unconfirmed facts:
 ${facts.map((f) => `- id ${f.id}: ${f.text}`).join('\n')}`;
 }
 
+// A model answer that is not valid JSON is an ERROR to count and show, never a silent "nothing found".
 export function parseJson(text) {
   const s = String(text || '');
   const a = s.indexOf('{'), b = s.lastIndexOf('}');
-  if (a < 0 || b <= a) return { items: [] };
-  try { return JSON.parse(s.slice(a, b + 1)); } catch { return { items: [] }; }
+  if (a < 0 || b <= a) return { items: [], parseError: true };
+  try {
+    const j = JSON.parse(s.slice(a, b + 1));
+    return Array.isArray(j?.items) ? j : { items: [], parseError: true };
+  } catch { return { items: [], parseError: true }; }
 }
