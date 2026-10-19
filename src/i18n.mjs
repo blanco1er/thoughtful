@@ -151,3 +151,10 @@ export function t(lang, key, vars = {}) {
 }
 
 export const LOCALE = { en: 'en-US', fr: 'fr-FR' };
+
+// Relations are stored in English (model output); shown in the reader's language.
+const REL_FR = { sister: 'sœur', 'little sister': 'petite sœur', 'big sister': 'grande sœur', brother: 'frère', friend: 'ami·e', 'best friend': 'meilleur·e ami·e', mother: 'mère', mom: 'mère', father: 'père', dad: 'père', grandmother: 'grand-mère', grandfather: 'grand-père', grandma: 'grand-mère', grandpa: 'grand-père', colleague: 'collègue', coworker: 'collègue', partner: 'partenaire', wife: 'épouse', husband: 'mari', girlfriend: 'compagne', boyfriend: 'compagnon', son: 'fils', daughter: 'fille', cousin: 'cousin·e', aunt: 'tante', uncle: 'oncle', niece: 'nièce', nephew: 'neveu', neighbour: 'voisin·e', neighbor: 'voisin·e', 'mother-in-law': 'belle-mère', 'father-in-law': 'beau-père', 'sister-in-law': 'belle-sœur', 'brother-in-law': 'beau-frère', godmother: 'marraine', godfather: 'parrain', boss: 'responsable', manager: 'responsable' };
+export function rel(lang, r) {
+  if (!r) return '';
+  return lang === 'fr' ? REL_FR[String(r).toLowerCase().trim()] || r : r;
+}

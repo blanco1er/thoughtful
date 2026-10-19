@@ -1,5 +1,5 @@
 // Thoughtful web app (iPhone first, works on any browser). Vanilla ES modules, no build step.
-import { t as tr, LOCALE } from '/i18n.mjs';
+import { t as tr, LOCALE, rel } from '/i18n.mjs';
 
 const root = document.getElementById('root');
 let S = null; // last /api/state
@@ -101,7 +101,7 @@ function errorBanner() {
 
 // ---------- views ----------
 function onboarding() {
-  root.innerHTML = `<main class="app onb">${topbar()}
+  root.innerHTML = `<main class="app onb"><div class="topbar"><span></span>${langSwitch()}</div>
     <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
     <h1>${esc(T('onb.title'))}</h1>
     <p class="lead">${esc(T('onb.lead'))}</p>
@@ -164,9 +164,9 @@ function tonightView() {
   html += `<h1 class="title">${esc(summarySentence(c))}</h1>${sampleBanner()}${errorBanner()}`;
   for (const e of c.elements) {
     if (e.type === 'confirm') {
-      const newP = e.person.status === 'suggested' ? `<p class="meta">${esc(T('confirm.newPerson', { name: e.person.name, rel: e.person.relation ? ` (${e.person.relation})` : '' }))}</p>` : '';
+      const newP = e.person.status === 'suggested' ? `<p class="meta">${esc(T('confirm.newPerson', { name: e.person.name, rel: e.person.relation ? ` (${rel(lang, e.person.relation)})` : '' }))}</p>` : '';
       html += `<section class="moment" aria-label="${esc(T('confirm.title'))}"><p class="kicker">${esc(T('confirm.title'))}</p>
-        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)}${e.person.relation ? ` <span class="soft">· ${esc(e.person.relation)}</span>` : ''}<br>${esc(e.item.text)}</p></div>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)}${e.person.relation ? ` <span class="soft">· ${esc(rel(lang, e.person.relation))}</span>` : ''}<br>${esc(e.item.text)}</p></div>
         ${quote(e.item)}${newP}
         <div class="actions"><button class="btn primary" type="button" data-confirm="${esc(e.item.id)}">${esc(T('confirm.yes'))}</button><button class="btn" type="button" data-reject="${esc(e.item.id)}">${esc(T('confirm.no'))}</button></div>
         <p class="small">${esc(e.left > 1 ? T('confirm.left', { n: e.left - 1 }) : T('confirm.left.0'))}</p></section>`;
@@ -222,7 +222,7 @@ function peopleView() {
   if (!people.length) {
     html += `<div class="empty"><svg class="mark" aria-hidden="true"><use href="#i-people"/></svg><h2>${esc(T('people.empty.t'))}</h2><p>${esc(T('people.empty.d'))}</p></div>`;
   } else {
-    const row = (p) => `<li class="has-mono"><a class="row" href="#/people/${encodeURIComponent(p.id)}"><div class="mono sm" aria-hidden="true">${initial(p.name)}</div><span class="body"><span class="t">${esc(p.name)}</span><span class="s">${esc([p.relation, p.notes ? T(p.notes === 1 ? 'people.notes' : 'people.notes.n', { n: p.notes }) : '', p.pending ? T('note.pending') : ''].filter(Boolean).join(' · '))}</span></span>${icon('chev', 'chev')}</a></li>`;
+    const row = (p) => `<li class="has-mono"><a class="row" href="#/people/${encodeURIComponent(p.id)}"><div class="mono sm" aria-hidden="true">${initial(p.name)}</div><span class="body"><span class="t">${esc(p.name)}</span><span class="s">${esc([rel(lang, p.relation), p.notes ? T(p.notes === 1 ? 'people.notes' : 'people.notes.n', { n: p.notes }) : '', p.pending ? T('note.pending') : ''].filter(Boolean).join(' · '))}</span></span>${icon('chev', 'chev')}</a></li>`;
     const conf = people.filter((p) => p.status === 'confirmed');
     const sugg = people.filter((p) => p.status !== 'confirmed');
     if (conf.length) html += `<ul class="list">${conf.map(row).join('')}</ul>`;
@@ -233,11 +233,12 @@ function peopleView() {
 
 async function personView(id) {
   let p;
-  try { p = await api('/api/people/' + encodeURIComponent(id)); } catch { location.hash = '#/people'; return; }
+  try { p = await api('/api/people/' + encodeURIComponent(id)); } catch { p = null; }
+  if (!p || p.notFound) { location.replace('#/people'); return; }
   const kinds = ['life', 'wish', 'like', 'date', 'plan', 'promise'];
   const bday = p.birthday ? new Intl.DateTimeFormat(loc(), { month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(`2000-${p.birthday}T12:00:00Z`)) : '';
   let html = `<main class="app"><div class="topbar"><a class="back" href="#/people">${icon('back')}${esc(T('person.back'))}</a>${langSwitch()}</div>
-    <div class="person-head"><div class="mono" aria-hidden="true">${initial(p.name)}</div><div><h1>${esc(p.name)}</h1><p>${esc(p.relation || '')}</p></div></div>
+    <div class="person-head"><div class="mono" aria-hidden="true">${initial(p.name)}</div><div><h1>${esc(p.name)}</h1><p>${esc(rel(lang, p.relation))}</p></div></div>
     <ul class="list">
       <li><label class="row"><span class="body"><span class="t">${esc(T('person.relation'))}</span></span><input type="text" id="p-rel" value="${esc(p.relation || '')}" autocomplete="off" enterkeyhint="done" maxlength="30"></label></li>
       <li><label class="row"><span class="body"><span class="t">${esc(T('person.birthday'))}</span><span class="s">${esc(bday || T('person.birthday.none'))}</span></span><input type="date" id="p-bday" value="${p.birthday ? '2000-' + esc(p.birthday) : ''}" style="font-size:17px;border:0;background:var(--fill);border-radius:10px;min-height:40px;padding:0 8px;color:var(--label)"></label></li>
@@ -269,19 +270,19 @@ async function personView(id) {
 
 function settingsView() {
   const s = S.settings, c = S.connection;
-  const sel = (id, opts, v) => `<select id="${id}">${opts.map(([val, lab]) => `<option value="${esc(val)}" ${String(val) === String(v) ? 'selected' : ''}>${esc(lab)}</option>`).join('')}</select>`;
+  const sel = (id, opts, v, label) => `<select id="${id}" aria-label="${esc(label)}">${opts.map(([val, lab]) => `<option value="${esc(val)}" ${String(val) === String(v) ? 'selected' : ''}>${esc(lab)}</option>`).join('')}</select>`;
   const keyRow = (label, ok) => `<li><div class="row"><span class="body"><span class="t">${esc(label)}</span></span><span class="d"><span class="status ${ok ? 'ok' : ''}">${esc(T(ok ? 'set.key.ok' : 'set.key.off'))}</span></span></div></li>`;
-  const model = c.extractor === 'replay' ? `${c.model || 'Bedrock'} (${lang === 'fr' ? 'enregistrement du' : 'recorded'} ${c.recordedOn || ''})` : `Amazon Bedrock · ${c.model}`;
+  const nice = (id = '') => (/nova-2-lite/.test(id) ? 'Amazon Nova 2 Lite' : /haiku-4-5/.test(id) ? 'Claude Haiku 4.5' : id) + ' · Amazon Bedrock';
+  const model = c.extractor === 'replay' ? `${nice(c.model)} · ${lang === 'fr' ? 'enregistré le' : 'recorded'} ${c.recordedOn ? shortDate(Date.parse(c.recordedOn + 'T12:00:00Z')) : ''}` : nice(c.model);
   let html = `<main class="app">${topbar()}<h1 class="title" style="margin-top:14px">${esc(T('set.title'))}</h1>${sampleBanner()}
     <ul class="list">
-      <li><div class="row"><span class="body"><span class="t">${esc(T('set.mode'))}</span></span>${sel('s-mode', [['live', T('set.mode.live')], ['sample', T('set.mode.sample')]], S.mode)}</div></li>
+      <li><div class="row"><span class="body"><span class="t">${esc(T('set.mode'))}</span></span>${sel('s-mode', [['live', T('set.mode.live')], ['sample', T('set.mode.sample')]], S.mode, T('set.mode'))}</div></li>
       <li><label class="row"><span class="body"><span class="t">${esc(T('set.ritual'))}</span><span class="s">${esc(T('set.ritual.d'))}</span></span><input type="time" id="s-time" value="${esc(s.ritualTime)}"></label></li>
-      <li><div class="row"><span class="body"><span class="t">${esc(T('set.nudges'))}</span></span>${sel('s-nudges', [[0, '0'], [1, '1'], [2, '2']], s.maxNudgesPerDay)}</div></li>
-      <li><div class="row"><span class="body"><span class="t">${esc(T('set.quiet'))}</span></span>${sel('s-quiet', [[10, T('set.quiet.v', { n: 10 })], [20, T('set.quiet.v', { n: 20 })], [30, T('set.quiet.v', { n: 30 })], [60, T('set.quiet.v', { n: 60 })]], s.quietMinutes)}</div></li>
+      <li><div class="row"><span class="body"><span class="t">${esc(T('set.nudges'))}</span></span>${sel('s-nudges', [[0, '0'], [1, '1'], [2, '2']], s.maxNudgesPerDay, T('set.nudges'))}</div></li>
+      <li><div class="row"><span class="body"><span class="t">${esc(T('set.quiet'))}</span></span>${sel('s-quiet', [[10, T('set.quiet.v', { n: 10 })], [20, T('set.quiet.v', { n: 20 })], [30, T('set.quiet.v', { n: 30 })], [60, T('set.quiet.v', { n: 60 })]], s.quietMinutes, T('set.quiet'))}</div></li>
       <li><label class="row"><span class="body"><span class="t">${esc(T('set.area'))}</span></span><input type="text" id="s-area" value="${esc(s.homeArea)}" placeholder="${esc(T('set.area.ph'))}" autocomplete="address-level2" enterkeyhint="done" maxlength="60"></label></li>
     </ul><p class="list-foot">${esc(T('set.area.d'))}</p>
-    <h2 class="section">&nbsp;</h2>
-    <ul class="list">
+    <ul class="list" style="margin-top:24px">
       <li><label class="row"><span class="body"><span class="t">${esc(T('set.pause'))}</span><span class="s">${esc(T('set.pause.d'))}</span></span><input type="checkbox" role="switch" class="switch" id="s-pause" ${s.paused ? 'checked' : ''}></label></li>
       <li><label class="row"><span class="body"><span class="t">${esc(T('set.writeBee'))}</span><span class="s">${esc(T('set.writeBee.d'))}</span></span><input type="checkbox" role="switch" class="switch" id="s-bee" ${s.writeToBee !== false ? 'checked' : ''}></label></li>
     </ul>

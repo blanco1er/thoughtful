@@ -7,7 +7,7 @@ import crypto from 'node:crypto';
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
-import { STRINGS, t } from './i18n.mjs';
+import { STRINGS, t, rel } from './i18n.mjs';
 
 export const SERVER_INFO = { name: 'thoughtful', title: 'Thoughtful', version: '0.1.0' };
 export const MCP_APP_MIME = 'text/html;profile=mcp-app';
@@ -21,10 +21,14 @@ let cardCache = null;
 export function card(publicBase = '') {
   if (cardCache && cardCache.base === publicBase) return cardCache;
   const dict = { en: pickCardStrings('en'), fr: pickCardStrings('fr') };
-  const html = fs.readFileSync(CARD_SRC, 'utf8').replace('/*__STRINGS__*/{}', JSON.stringify(dict)).replace('__IMG_BASE__', publicBase);
+  const html = fs.readFileSync(CARD_SRC, 'utf8').replace('/*__STRINGS__*/{}', JSON.stringify(dict)).replace('/*__REL__*/{}', JSON.stringify(relTable())).replace('__IMG_BASE__', publicBase);
   const hash = crypto.createHash('sha256').update(html).digest('hex').slice(0, 8);
   cardCache = { base: publicBase, html, uri: `ui://thoughtful/tonight-${hash}.html` };
   return cardCache;
+}
+function relTable() {
+  const keys = ['sister', 'little sister', 'brother', 'friend', 'best friend', 'mother', 'father', 'grandmother', 'grandfather', 'colleague', 'partner', 'wife', 'husband', 'son', 'daughter', 'cousin', 'aunt', 'uncle', 'neighbour', 'neighbor'];
+  return Object.fromEntries(keys.map((k) => [k, rel('fr', k)]));
 }
 function pickCardStrings(lang) {
   const out = {};

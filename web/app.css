@@ -39,6 +39,7 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--label); font: 17px/1.45 var(--font); -webkit-font-smoothing: antialiased; overflow-wrap: anywhere; min-height: 100vh; min-height: 100dvh; }
 img { max-width: 100%; }
 button, input, select { font: inherit; color: inherit; }
+button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 a { color: var(--accent-text); }
 :focus-visible { outline: 3px solid color-mix(in srgb, #0a84ff 70%, transparent); outline-offset: 2px; border-radius: 8px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -52,7 +53,7 @@ a { color: var(--accent-text); }
 .topbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: var(--label-2); }
 .topbar .brand svg { width: 22px; height: 22px; }
 .lang { display: inline-flex; background: var(--fill); border-radius: 999px; padding: 2px; }
-.lang button { border: 0; background: transparent; min-width: 44px; min-height: 36px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--label-2); cursor: pointer; }
+.lang button { border: 0; background: transparent; min-width: 44px; min-height: 44px; -webkit-user-select: none; user-select: none; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--label-2); cursor: pointer; }
 .lang button[aria-pressed="true"] { background: var(--surface); color: var(--label); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 
 .date { margin: 18px 0 2px; font-size: 15px; color: var(--label-2); font-weight: 500; }
@@ -124,7 +125,7 @@ a.row:active, button.row:active { background: var(--fill); }
 .row .s { font-size: 14px; color: var(--label-2); }
 .row .d { color: var(--label-2); font-size: 15px; text-align: right; flex: none; max-width: 55%; }
 .row .chev { width: 8px; height: 14px; color: var(--label-3); flex: none; }
-.row input[type="text"], .row input[type="time"], .row select { font-size: 17px; border: 0; background: var(--fill); border-radius: var(--r-sm); min-height: 40px; padding: 0 10px; color: var(--label); max-width: 60%; }
+.row input[type="text"], .row input[type="time"], .row select { font-size: 17px; border: 0; background: var(--fill); border-radius: var(--r-sm); min-height: 44px; min-width: 64px; padding: 0 10px; color: var(--label); max-width: 60%; }
 .row input[type="text"] { flex: 1; min-width: 0; max-width: none; }
 .list-foot { margin: 8px 16px 0; font-size: 13px; color: var(--label-2); }
 .switch { appearance: none; -webkit-appearance: none; flex: none; width: 51px; height: 31px; border-radius: 999px; background: var(--fill-2); position: relative; cursor: pointer; transition: background-color .2s ease; margin: 0; }

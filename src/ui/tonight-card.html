@@ -92,6 +92,8 @@ button[disabled] { opacity: .55; cursor: default; }
 </main>
 <script>
 const DICT = /*__STRINGS__*/{};
+const REL = /*__REL__*/{};
+const rel = (r) => (lang === 'fr' && r ? REL[String(r).toLowerCase()] || r : r || '');
 let lang = 'en', shared = true, state = null, extras = null, busy = false;
 const T = (k, v = {}) => String((DICT[lang] || DICT.en || {})[k] ?? (DICT.en || {})[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -152,9 +154,9 @@ function render() {
   let html = `${top}<h1>${esc(summary(c))}</h1><div class="moments">`;
   for (const e of c.elements) {
     if (e.type === 'confirm') {
-      const rel = e.person.relation ? ` <span>· ${esc(e.person.relation)}</span>` : '';
+      const relTxt = e.person.relation ? ` <span>· ${esc(rel(e.person.relation))}</span>` : '';
       html += `<section class="moment"><p class="kicker">${esc(T('confirm.title'))}</p>
-        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)}${rel}<br>${esc(e.item.text)}</p></div>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)}${relTxt}<br>${esc(e.item.text)}</p></div>
         ${quoteBlock(e.item)}
         <div class="actions"><button class="primary" data-act="yes" data-id="${esc(e.item.id)}">${esc(T('confirm.yes'))}</button><button data-act="no" data-id="${esc(e.item.id)}">${esc(T('confirm.no'))}</button></div></section>`;
     } else if (e.type === 'occasion') {

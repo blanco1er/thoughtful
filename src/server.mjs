@@ -58,7 +58,10 @@ export function createServer(ctx, { host = '127.0.0.1', port = 4317, dataDir } =
     const m = req.method;
     if (p === '/api/state' && m === 'GET') return send(res, 200, await ctx.summary());
     if (p === '/api/extras' && m === 'GET') return send(res, 200, await ctx.extras(url.searchParams.get('kind') || 'occasion'));
-    if (p.startsWith('/api/people/') && m === 'GET') return send(res, 200, ctx.person(decodeURIComponent(p.split('/')[3])));
+    if (p.startsWith('/api/people/') && m === 'GET') {
+      // A link to someone who was forgotten is not an error: the app goes back to the list (UB-43).
+      try { return send(res, 200, ctx.person(decodeURIComponent(p.split('/')[3]))); } catch (e) { if (e.status === 404) return send(res, 200, { notFound: true }); throw e; }
+    }
     if (m !== 'POST') return null;
     if (!sameOrigin(req)) return send(res, 403, { error: 'forbidden_origin' });
     const body = await readJson(req);

@@ -61,7 +61,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       return cur();
     },
     needsOnboarding() { return mode === 'live' ? !S().settings.consent : false; },
-    firstRun() { return !prefs.mode && !fs.existsSync(path.join(dataDir, 'live', 'notebook.json')); },
+    firstRun() { return mode === 'live' && !prefs.mode && !fs.existsSync(path.join(dataDir, 'live', 'notebook.json')); },
 
     tonight() { return tonight(S(), { now: now(), tz: tz(), lang: lang() }); },
 
