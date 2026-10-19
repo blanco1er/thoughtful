@@ -61,7 +61,17 @@ const loop = async () => {
 if (live) {
   setTimeout(loop, 1500);
   setInterval(loop, config.syncEveryMs).unref();
-  setInterval(() => { ctx.current.engine.tick().catch(() => {}); }, 60_000).unref();
+  // Every minute: send due reminders; and at the evening card time (default 20:05, right after Bee's 8 PM
+  // summary) read Bee once more so tonight's card holds the whole day.
+  let ritualDone = null;
+  setInterval(() => {
+    ctx.current.engine.tick().catch(() => {});
+    const st = ctx.current.store.state.settings;
+    const tz = st.timezone || 'Europe/Paris';
+    const hm = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+    const day = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());
+    if (hm >= (st.ritualTime || '20:05') && ritualDone !== day) { ritualDone = day; loop(); }
+  }, 60_000).unref();
   if (ctx.mode === 'live') ctx.current.engine.startStream();
 }
 const stop = async () => { ctx.current.engine.stop(); await srv.close(); process.exit(0); };
