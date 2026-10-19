@@ -105,7 +105,7 @@ export function createMcpServer(ctx, { publicBase = '' } = {}) {
   server.registerTool('remind_me', {
     title: 'Remind me later',
     description: 'Plan one quiet reminder about a note (a promise or an occasion). It reaches the user\'s phone and watch through Bee, at 9 AM, never during a conversation.',
-    inputSchema: { note_id: z.string(), when: z.enum(['tomorrow_morning', 'in_3_days']).default('tomorrow_morning') },
+    inputSchema: { note_id: z.string().describe('note_id from tonight_card (the promise or the occasion note)'), when: z.enum(['tomorrow_morning', 'in_3_days']).default('tomorrow_morning').describe('tomorrow_morning (tomorrow at 9, "tomorrow", "in the morning") or in_3_days ("in three days", "later this week")') },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     _meta: { ui: { resourceUri: c.uri } },
   }, async ({ note_id, when }) => {
@@ -122,7 +122,7 @@ export function createMcpServer(ctx, { publicBase = '' } = {}) {
   server.registerTool('mark_done', {
     title: 'Mark a promise as done',
     description: 'Mark a promise the user kept as done. It leaves the evening card and any planned reminder is cancelled.',
-    inputSchema: { note_id: z.string() },
+    inputSchema: { note_id: z.string().describe('note_id of the promise, from tonight_card ("I did it", "done", "c\'est fait")') },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: { ui: { resourceUri: c.uri } },
   }, async ({ note_id }) => {
@@ -163,7 +163,7 @@ export function createMcpServer(ctx, { publicBase = '' } = {}) {
   server.registerTool('reveal_card', {
     title: 'Show or hide surprises',
     description: 'Show or hide the surprise part of tonight\'s card on a shared screen. Called by the card buttons.',
-    inputSchema: { show: z.boolean() },
+    inputSchema: { show: z.boolean().describe('true to show the surprise part ("show", "afficher"), false to cover it again ("hide", "masquer")') },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: { ui: { resourceUri: c.uri, visibility: ['app'] } },
   }, async ({ show }) => {
@@ -174,7 +174,7 @@ export function createMcpServer(ctx, { publicBase = '' } = {}) {
   server.registerTool('forget_note', {
     title: 'Forget a note',
     description: 'Erase one note from the notebook (and from Bee if Thoughtful wrote it there). Ask the user to confirm first.',
-    inputSchema: { note_id: z.string(), user_confirmed: z.boolean().describe('true only after the user explicitly said yes') },
+    inputSchema: { note_id: z.string().describe('note_id of the note to erase ("forget that", "oublie ça")'), user_confirmed: z.boolean().describe('true only after the user explicitly said yes') },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async ({ note_id, user_confirmed }) => {
     const fr = lang() === 'fr';

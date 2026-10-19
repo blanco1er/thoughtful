@@ -22,7 +22,7 @@ for (const s of shots) {
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-  const u = `${HOST}/?${new URLSearchParams([['device', device], ['theme', theme], ['tts', 'captions'], ['say', SAY], ...(process.env.SAY2 ? [['say', process.env.SAY2]] : [])])}`;
+  const u = `${HOST}/?${new URLSearchParams([['device', device], ['theme', theme], ['tts', 'captions'], ['say', SAY], ...(process.env.INSPECTOR ? [['inspector', process.env.INSPECTOR]] : []), ...(process.env.SAY2 ? [['say', process.env.SAY2]] : [])])}`;
   await page.goto(u, { waitUntil: 'networkidle' });
   await page.waitForTimeout(Number(process.env.WAIT || 3500));
   if (process.env.CLICK) {

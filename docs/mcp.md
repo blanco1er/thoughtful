@@ -14,4 +14,4 @@ Each result: `content[0]` is a sentence a voice can say (never an id, never a gi
 
 Security: the server listens on 127.0.0.1; browser requests from another origin are refused (403). On a LAN (`--host 0.0.0.0`) every request needs the pairing token printed at start.
 
-Checked on 19 Oct 2026 with the official MCP Inspector CLI 2.11.0 (tools/list, tools/call `tonight_card`) and in mcp-voice-host (Echo Show 15 and 8, light and dark).
+Checked on 19 Oct 2026 with the official MCP Inspector CLI 2.11.0 (tools/list, tools/call `tonight_card`) and in mcp-voice-host (Echo Show 15 and 8, phone, light and dark): its Alexa+ voice lint (24 rules) reports no finding.
