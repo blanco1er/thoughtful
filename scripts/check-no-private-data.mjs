@@ -25,5 +25,10 @@ for (const f of files) {
   if (SECRET.test(text)) problems.push(`${f}: looks like a secret`);
   if (lastName && lastName.test(text)) problems.push(`${f}: contains the owner's last name`);
 }
+// Commit identities must be the public no-reply address (a local machine name or a Gmail address would leak).
+try {
+  const ids = execFileSync('git', ['log', '--format=%ae%n%ce'], { encoding: 'utf8' }).split('\n').filter(Boolean);
+  if (ids.some((e) => !e.endsWith('@users.noreply.github.com'))) problems.push('git history: a commit author or committer is not the no-reply address');
+} catch {}
 if (problems.length) { console.error('Private data check FAILED:\n  ' + problems.join('\n  ')); process.exit(1); }
 console.log(`Private data check passed (${files.length} files${lastName ? ', owner last name checked' : ''}).`);
