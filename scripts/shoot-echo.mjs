@@ -29,7 +29,7 @@ for (const s of shots) {
   if (process.env.CLICK) {
     for (const frame of page.frames()) {
       const b = await frame.$(`button[data-act="${process.env.CLICK}"]`).catch(() => null);
-      if (b) { await b.click(); await page.waitForTimeout(2500); break; }
+      if (b) { await b.click(); await page.waitForTimeout(Number(process.env.CLICK_WAIT || 2500)); break; }
     }
   }
   if (process.env.MASK) {
