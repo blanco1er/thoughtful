@@ -70,3 +70,18 @@ test('search phrases are cleaned before leaving the Mac', async () => {
   assert.equal(cleanQuery('cours de poterie près de chez elle'), 'cours de poterie');
   assert.equal(cleanQuery('Japanese ceramic tea bowl'), 'Japanese ceramic tea bowl');
 });
+
+test('sensitive sentences never leave the Mac; only the name they addressed is kept', async () => {
+  const { userMessage, vocative } = await import('../src/extract/prompt.mjs');
+  const conv = { startTime: Date.parse('2026-10-16T19:00:00Z'), shortSummary: '', utterances: [
+    { speaker: 'Sam', text: 'Léa, tu es encore fâchée contre Paul ?' },
+    { speaker: 'Unknown', text: "On s'est disputés hier, je crois qu'on va se séparer." },
+    { speaker: 'Unknown', text: 'Sinon je me suis mise à la céramique, j’adore.' },
+  ] };
+  const msg = userMessage({ conv, ownerName: 'Sam', people: [], today: '2026-10-19', timezone: 'Europe/Paris' });
+  assert.ok(!/fâchée|disputés|séparer|Paul/.test(msg));
+  assert.ok(msg.includes('addressed to Léa'));
+  assert.ok(msg.includes('céramique'));
+  assert.equal(vocative('If I won I would buy you a castle, Jo.'), 'Jo');
+  assert.equal(vocative('Bref.'), null);
+});

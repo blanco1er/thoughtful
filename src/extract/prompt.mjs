@@ -5,7 +5,7 @@ You read one transcript of a real conversation that Bee recorded (often in Frenc
 Lines are labelled [OWNER] (the owner, identified by Bee's voice recognition), [OTHER: name] or [UNKNOWN].
 
 Extract ONLY these, about people OTHER than the owner (family, friends, colleagues the owner is close to):
-- like: a stable taste ("she loves ceramics", "il est végétarien")
+- like: a stable taste ("she loves ceramics", "il est végétarien", "I am obsessed with Nina Simone lately")
 - wish: something the person would like to do, have or try ("I'd love to learn pottery", "my headphones broke")
 - life: something happening in their life, with a date if said ("first half-marathon on Sunday", "starts a new job in November")
 - date: an important date (birthday, anniversary) with the date if said
@@ -14,6 +14,8 @@ Extract ONLY these, about people OTHER than the owner (family, friends, colleagu
 
 Strict rules:
 1. Never extract health, illness, pregnancy, death, conflicts, breakups, intimacy, politics, religion, or anyone's money/job loss. Set "sensitive": true if a candidate touches these, and it will be dropped.
+   Judge EACH item on its own: a sensitive moment elsewhere in the conversation does not make a harmless item sensitive
+   (a new hobby, a wish for a book, a trip). Simply do not extract the sensitive part.
 2. If the words seem to come from a TV, radio, podcast, video or song playing nearby (scripted tone, ads, a narrator), set "media": true.
 3. Never guess. If you are not sure who the person is, or if it was a joke or hypothetical, lower "confidence" (below 0.6 means drop).
 4. "quote" must be copied VERBATIM from the transcript (5 to 25 words, original language, no translation, no paraphrase).
@@ -23,7 +25,7 @@ Strict rules:
 7. event_date as YYYY-MM-DD if a date can be computed from what was said and the CONVERSATION date (not today), else null. date_kind: birthday | anniversary | other | null.
 8. For wish/like that would make a good gift, "gift_query" is a short English product search (e.g. "beginner pottery tool kit"); "experience_query" a short local-experience search (e.g. "pottery class"). Otherwise null.
 9. One item per distinct fact: never merge two facts ("loves matcha" and "wants a pottery class" are two items).
-10. Wishes are often indirect: "I have been dying to try X", "my X broke / stopped working / crackles", "I miss X", "j'ai trop envie de", "ça me manque", "mon X ne marche plus". A broken or missed thing is a wish for a replacement.
+10. Wishes are often indirect: "I have been dying to try X", "I am looking for a good X", "my X broke / stopped working / crackles", "I miss X", "j'ai trop envie de", "je cherche un bon X", "ça me manque", "mon X ne marche plus". A broken or missed thing is a wish for a replacement.
 11. Life events include something newly started (lessons, a new job, a move, a race, a trip) with its date if known.
 12. At most 8 items. Return {"items": []} when nothing qualifies (most conversations).
 
@@ -48,8 +50,20 @@ const label = (u, ownerName) => {
   return '[UNKNOWN]';
 };
 
-export function transcriptFor(conv, ownerName, maxChars = 24000) {
-  const lines = conv.utterances.map((u) => `${label(u, ownerName)} ${u.text}`);
+import { isSensitive } from './filters.mjs';
+
+// Sentences about health, conflicts, politics, religion or money are removed ON THE MAC before anything is sent
+// to the model: they never leave the machine, and they cannot taint the harmless rest of the conversation.
+export const REDACTED = '[private sentence removed on the device]';
+// Keep only who was addressed ("Léa, ..." / "..., Jo?"), so the rest of the conversation can still be attributed.
+export function vocative(text) {
+  const t = String(text).trim();
+  const m = /^([A-ZÀ-Ý][\p{L}'-]{1,20})\s*,/u.exec(t) || /,\s*([A-ZÀ-Ý][\p{L}'-]{1,20})\s*[?.!]*$/u.exec(t);
+  return m ? m[1] : null;
+}
+export function transcriptFor(conv, ownerName, maxChars = 24000, { redact = false } = {}) {
+  const hide = (u) => { const v = vocative(u.text); return v ? `[private sentence removed on the device; addressed to ${v}]` : REDACTED; };
+  const lines = conv.utterances.map((u) => `${label(u, ownerName)} ${redact && isSensitive(u.text) ? hide(u) : u.text}`);
   let text = lines.join('\n');
   if (text.length > maxChars) text = text.slice(0, maxChars) + '\n[…]';
   return text;
@@ -67,8 +81,8 @@ ${known}
 
 Bee's short summary of this conversation: ${conv.shortSummary || '(none)'}
 
-Transcript:
-${transcriptFor(conv, ownerName)}`;
+Transcript (lines marked as removed were private and must be ignored):
+${transcriptFor(conv, ownerName, 24000, { redact: true })}`;
 }
 
 export function factsMessage({ facts, ownerName, people, today }) {

@@ -67,6 +67,7 @@ Everything goes through the official Bee CLI library, imported in [`src/bee.mjs`
 ## Privacy
 
 - Your notebook is a local file (`~/Library/Application Support/Thoughtful`, mode 600). It keeps short notes, the few words that prove them, and dates. Never full transcripts, never audio.
+- Sentences about health, conflicts, politics, religion or money are removed **on your Mac** before a transcript is sent for extraction.
 - The only data that leaves your Mac: the conversation being read, sent to Amazon Bedrock (your own AWS account) for extraction; a gift search phrase to Channel3; an activity and your neighbourhood (never an address) to Google Places.
 - Settings > "Erase everything" deletes the notebook and the facts Thoughtful wrote to Bee.
 - No real data in this repository: tests use invented fixtures; `npm run check` refuses secrets, runtime files and the owner's last name.
@@ -91,8 +92,14 @@ Bee (Apple Watch / wearable)
 ## Tests
 
 ```sh
-npm test        # 37 tests, invented fixtures only, no network
+npm test        # 38 tests, invented fixtures only, no network
+AWS_PROFILE=<profile> node scripts/bench-extraction.mjs 3   # quality on 10 invented FR/EN conversations (≈ 1 cent)
 npm run check   # tests + private data check
+```
+
+Last measured with Amazon Nova 2 Lite (19 Oct 2026): **86 % recall, 0 leaks** (health, conflicts, votes, debts, TV, jokes, other people's promises), 3 extra notes out of 39.
+
+```sh
 ```
 
 The tests drive the real `@beeai/cli/lib` against a stand-in `bee` binary to check the exact commands sent (`todos create --alarm-at`, `facts confirm`, …).

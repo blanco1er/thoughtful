@@ -8,7 +8,7 @@ export const MIN_CONFIDENCE = 0.6;
 // intimacy. Bilingual EN/FR word stems, matched on word starts.
 const SENSITIVE = [
   // health
-  'sick', 'illness', 'ill ', 'disease', 'cancer', 'tumor', 'tumour', 'hospital', 'surgery', 'doctor', 'diagnos', 'therapy', 'therapist', 'depress', 'anxiety', 'pregnan', 'miscarriage', 'medication', 'pills', 'chemo', 'rehab', 'addiction', 'drug addict', 'alcoholi', 'suicid', 'died', 'funeral', 'grief',
+  'sick', 'illness', 'ill ', 'disease', 'cancer', 'tumor', 'tumour', 'hospital', 'surgery', 'doctor', 'diagnos', 'therapy', 'therapist', 'depress', 'anxiety', 'pregnan', 'miscarriage', 'medication', 'pills', 'chemo', 'rehab', 'addiction', 'drug addict', 'alcoholi', 'suicid', 'passed away', 'funeral', 'grief',
   'malade', 'maladie', 'hôpital', 'hopital', 'chirurgi', 'médecin', 'medecin', 'diagnost', 'thérap', 'therap', 'dépress', 'depress', 'angoiss', 'enceinte', 'grossesse', 'fausse couche', 'médicament', 'medicament', 'cancer', 'décéd', 'deced', 'enterrement', 'obsèques', 'obseques', 'deuil',
   // conflicts, intimacy
   'divorce', 'breakup', 'break up', 'broke up', 'cheating', 'affair', 'fight', 'argument', 'angry at', 'lawsuit', 'custody', 'sex ', 'sexual', 'dating app',
@@ -16,7 +16,7 @@ const SENSITIVE = [
   // politics, religion
   'vote', 'election', 'messe', 'mass on sunday', 'élection', 'politic', 'politique', 'republican', 'democrat', 'parti ', 'religio', 'church', 'église', 'eglise', 'mosque', 'mosquée', 'synagog', 'pray', 'prière', 'priere',
   // other people's money
-  'debt', 'loan', 'salary', 'mortgage', 'bankrupt', 'owes', 'dette', 'pret bancaire', 'salaire', 'credit immo', 'faillite', 'chomage', 'unemploy', 'got fired', 'licenci',
+  'debt', 'loan', 'salary', 'mortgage', 'bankrupt', 'owes', 'i owe', 'the bank', 'dette', 'pret bancaire', 'salaire', 'credit immo', 'faillite', 'chomage', 'unemploy', 'got fired', 'licenci',
 ];
 
 // Things that sound like TV, a podcast or a video playing near the watch (Bee hears them too).
@@ -116,7 +116,7 @@ export function guardItems(rawItems, { transcriptText, utterances, ownerName, so
     };
     const why = (r) => dropped.push({ reason: r, kind: it.kind });
     if (!it.kind || !it.textEn) { why('malformed'); continue; }
-    if (!it.person) { why('no_person'); continue; }
+    if (!it.person || /^(unknown|owner|other|\[.*\])$/i.test(it.person)) { why('no_person'); continue; }
     if (raw.sensitive === true || isSensitive(it.textEn, it.textFr, it.quote)) { why('sensitive'); continue; }
     if (raw.media === true || looksLikeMedia(it.quote, it.textEn)) { why('media'); continue; }
     if (it.confidence < MIN_CONFIDENCE) { why('low_confidence'); continue; }
