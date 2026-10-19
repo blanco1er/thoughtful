@@ -23,6 +23,8 @@ open http://127.0.0.1:4317
 
 The sample household plays the exact same product on invented data: five conversations (a dinner with a sister back from Kyoto, a call with a friend before his first half-marathon, a visit to a grandmother, a TV show playing in the living room, a coffee with a colleague). Its notes were extracted once by Amazon Bedrock and are replayed, with dates moved to today, so it works offline. The TV show, a knee surgery and a mention of church are set aside, as they would be on real data.
 
+**Other MCP clients and an Agent Skill:** see [docs/mcp.md](docs/mcp.md) and [skill/thoughtful/SKILL.md](skill/thoughtful/SKILL.md).
+
 **On an Echo Show (MCP Apps):** Thoughtful is also an MCP server. Open it in [mcp-voice-host](https://github.com/blanco1er/mcp-voice-host), our open-source Alexa+-style host:
 
 ```sh
