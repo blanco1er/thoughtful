@@ -62,3 +62,11 @@ test('Bee pending facts need no transcript quote', () => {
   assert.equal(r.kept.length, 1);
   assert.equal(r.kept[0].beeFactId, 42);
 });
+
+test('search phrases are cleaned before leaving the Mac', async () => {
+  const { cleanQuery } = await import('../src/extract/filters.mjs');
+  assert.equal(cleanQuery('pottery wheel class near her place'), 'pottery wheel class');
+  assert.equal(cleanQuery('What kind of ceramics would Maya appreciate?'), null);
+  assert.equal(cleanQuery('cours de poterie près de chez elle'), 'cours de poterie');
+  assert.equal(cleanQuery('Japanese ceramic tea bowl'), 'Japanese ceramic tea bowl');
+});

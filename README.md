@@ -91,7 +91,7 @@ Bee (Apple Watch / wearable)
 ## Tests
 
 ```sh
-npm test        # 36 tests, invented fixtures only, no network
+npm test        # 37 tests, invented fixtures only, no network
 npm run check   # tests + private data check
 ```
 

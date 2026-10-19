@@ -53,7 +53,7 @@ So we built the friend who remembers, with one rule above all: **it never interr
 - **MCP server** (Streamable HTTP, protocol 2025-11-25, stateless) with an **MCP Apps** card (`ui://thoughtful/tonight-….html`): eight tools (`tonight_card`, `answer_note`, `remind_me`, `mark_done`, `person_brief`, `forget_note`, plus app-only `gift_ideas` and `reveal_card`). Each answer's first block is a sentence a voice can say. Shown on an Echo Show 15 / 8 in our open-source host **mcp-voice-host**.
 - **iPhone web app** (no framework): first-run with consent, the evening card, people and their notes ("Forget" on each), settings (language EN/FR, reminders per day, quiet time, neighbourhood for places, pause, write to Bee, "Erase everything"), and an activity log that says what Thoughtful did, with counts only.
 - **Privacy by construction:** the notebook is a local file (mode 600) on the owner's Mac; no transcript is ever stored; keys live in the macOS Keychain; the repo contains no real data and a check refuses secrets and the owner's last name.
-- **Tests:** 36 tests on invented fixtures, including the real `@beeai/cli/lib` driven against a stand-in `bee` binary to check the exact commands sent.
+- **Tests:** 37 tests on invented fixtures, including the real `@beeai/cli/lib` driven against a stand-in `bee` binary to check the exact commands sent.
 
 ## Challenges we ran into (and measured)
 
@@ -84,7 +84,7 @@ The best moment for an ambient AI is almost never "now". It is tonight, after th
 
 | Criterion | Where to see it |
 |---|---|
-| **Tech implementation** (uses Bee for real) | `src/bee.mjs` (imports `@beeai/cli/lib`), reads + **writes** facts and todos with alarms, stream with reconnection; Bedrock with cap and fallback; MCP + MCP Apps; 36 tests |
+| **Tech implementation** (uses Bee for real) | `src/bee.mjs` (imports `@beeai/cli/lib`), reads + **writes** facts and todos with alarms, stream with reconnection; Bedrock with cap and fallback; MCP + MCP Apps; 37 tests |
 | **Design** (complete, coherent, right for each device) | iPhone app EN/FR with onboarding, consent, empty/error states, erase; Echo Show card in three columns sized for reading across the room, surprise cover; TV "Sunday" view with D-pad; UX audit at 0 issues (iPhone, iPad, desktop, light and dark) |
 | **Potential impact** | The most-proven personal need (remembering the people we love), the most-quantified pain (gifts), and the #1 reason people quit wearables (interruptions) solved by design. Natural extension of Amazon's own "Connect Bee to Amazon.com", for *other* people and occasions |
 | **Quality of the idea** ("Creative" list) | cross-device orchestration (Bee watch → Echo Show → wrist the next day → Fire TV on Sunday), ambient context → productivity workflow, advanced use of **facts** (write, confirm Bee's own, delete), real-time stream for quiet detection, self-improvement ("be the one who remembers") |

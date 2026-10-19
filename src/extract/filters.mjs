@@ -79,6 +79,14 @@ export function speakerOfQuote(quote, utterances, ownerName) {
 
 export const isOwner = (speaker, ownerName) => !!ownerName && norm(speaker) === norm(ownerName);
 
+// Search phrases go to Channel3 / Google Places: no places ("near her place"), no questions, no names.
+export function cleanQuery(q) {
+  if (!q) return null;
+  let s = String(q).replace(/\?.*$/, '').replace(/\b(near|close to|around|in her|in his|pr[eè]s de|à côté de|chez)\b.*$/i, '').replace(/["“”]/g, '').replace(/\s+/g, ' ').trim();
+  if (/^(what|which|could|would|how|quel|quelle)\b/i.test(s) || s.split(' ').length > 8) return null;
+  return s ? s.slice(0, 60) : null;
+}
+
 export function clampDate(s) {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(String(s))) return null;
   const d = new Date(s + 'T12:00:00Z');
@@ -101,8 +109,8 @@ export function guardItems(rawItems, { transcriptText, utterances, ownerName, so
       quote: String(raw.quote || '').trim().slice(0, 220),
       eventDate: clampDate(raw.event_date),
       dateKind: ['birthday', 'anniversary', 'other'].includes(raw.date_kind) ? raw.date_kind : null,
-      giftQuery: raw.gift_query ? String(raw.gift_query).slice(0, 80) : null,
-      experienceQuery: raw.experience_query ? String(raw.experience_query).slice(0, 80) : null,
+      giftQuery: cleanQuery(raw.gift_query),
+      experienceQuery: cleanQuery(raw.experience_query),
       confidence: Math.max(0, Math.min(1, Number(raw.confidence) || 0)),
       beeFactId: raw.bee_fact_id ?? null,
     };
