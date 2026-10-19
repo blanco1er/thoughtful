@@ -25,6 +25,9 @@ export const config = {
   // Third-party lookups, per day caps
   giftSearchesPerDay: Number(process.env.THOUGHTFUL_GIFT_SEARCHES_PER_DAY) || 20,
   placeSearchesPerDay: Number(process.env.THOUGHTFUL_PLACE_SEARCHES_PER_DAY) || 10,
+  // A gift, not a purchase: products outside this price range are not proposed (USD).
+  giftPriceMin: Number(process.env.THOUGHTFUL_GIFT_PRICE_MIN) || 15,
+  giftPriceMax: Number(process.env.THOUGHTFUL_GIFT_PRICE_MAX) || 250,
 };
 
 // Approximate on-demand prices (USD per 1M tokens), rounded UP on purpose: they only feed the spending cap,

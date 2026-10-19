@@ -21,7 +21,7 @@ npm run sample          # sample household: INVENTED people and conversations
 open http://127.0.0.1:4317
 ```
 
-The sample household plays the exact same product on invented data: five conversations (a dinner with a sister back from Kyoto, a call with a friend before his first half-marathon, a visit to a grandmother, a TV show playing in the living room, a coffee with a colleague). Its notes were extracted once by Amazon Bedrock and are replayed, with dates moved to today, so it works offline. The TV show, a knee surgery and a mention of church are set aside, as they would be on real data.
+The sample household plays the exact same product on invented data: five conversations (a dinner with a sister back from Kyoto, a call with a friend before his first half-marathon, a visit to a grandmother, a TV show playing in the living room, a coffee with a colleague). Its notes were extracted once by Amazon Bedrock and are replayed, with dates moved to today, so it works offline. Its gift ideas are a dated snapshot of real Channel3 results; its place is an OpenStreetMap result (or live Google Places details if you set a key). The TV show, a knee surgery and a mention of church are set aside, as they would be on real data.
 
 **Other MCP clients and an Agent Skill:** see [docs/mcp.md](docs/mcp.md) and [skill/thoughtful/SKILL.md](skill/thoughtful/SKILL.md).
 
@@ -71,6 +71,7 @@ Everything goes through the official Bee CLI library, imported in [`src/bee.mjs`
 - Your notebook is a local file (`~/Library/Application Support/Thoughtful`, mode 600). It keeps short notes, the few words that prove them, and dates. Never full transcripts, never audio.
 - Sentences about health, conflicts, politics, religion or money are removed **on your Mac** before a transcript is sent for extraction.
 - The only data that leaves your Mac: the conversation being read, sent to Amazon Bedrock (your own AWS account) for extraction; a gift search phrase to Channel3; an activity and your neighbourhood (never an address) to Google Places.
+- Third-party data: from Google Places only the **place ID** is ever stored (Google Maps Platform terms); name, address and rating are fetched live, kept in memory for an hour, and shown with the "Google Maps" attribution. Without a Google key, places come from OpenStreetMap (Nominatim, © OpenStreetMap contributors). Gift ideas are filtered to a gift price range (15 to 250 USD, `THOUGHTFUL_GIFT_PRICE_MIN/MAX`).
 - Settings > "Erase everything" deletes the notebook and the facts Thoughtful wrote to Bee.
 - No real data in this repository: tests use invented fixtures; `npm run check` refuses secrets, runtime files and the owner's last name.
 

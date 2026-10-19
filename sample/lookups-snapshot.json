@@ -1,0 +1,195 @@
+{
+ "recordedOn": "2026-10-19",
+ "area": "Brooklyn, New York",
+ "gifts": {
+  "matcha bamboo whisk": [
+   {
+    "id": "gi5PO3s",
+    "title": "SAYURI Bamboo Matcha Whisk",
+    "brand": "SAYURI",
+    "image": "https://cdn.trychannel3.com/eb9811e6-4e97-4b1d-91a7-e038178c4a3e?aid=01M5AFTN2RND2FH5QPME8VGEQ0&mid=sS4g",
+    "price": 23,
+    "currency": "USD",
+    "merchant": "Harrods",
+    "url": "https://buy.trychannel3.com/gi5PO3s-sS4g-itI8Uu?o=01M343MC6898KF4Z6TYNE6Y8RF&aid=01M5AFTN2RND2FH5QPME8VGEQ0"
+   },
+   {
+    "id": "VU5FAUT",
+    "title": "Bamboo Matcha Whisk",
+    "brand": "Davids Tea",
+    "image": "https://cdn.trychannel3.com/b295a598-0154-483a-9793-c2ab9035a76a?aid=01M5AFTN2RND2FH5QPME8VGEQ0&mid=PSkU",
+    "price": 31.9,
+    "currency": "USD",
+    "merchant": "DAVIDsTEA",
+    "url": "https://buy.trychannel3.com/VU5FAUT-PSkU-itI8Uu?o=01M3YYWQR2KADFE46DXNK5BN76&aid=01M5AFTN2RND2FH5QPME8VGEQ0"
+   },
+   {
+    "id": "cez6bsJ",
+    "title": "Bamboo Whisk",
+    "brand": "Rocky's Matcha",
+    "image": "https://cdn.trychannel3.com/7101c7a0-3e84-48be-8f56-af4403b8a9a1?aid=01M5AFTN2RND2FH5QPME8VGEQ0&mid=JSGM",
+    "price": 20,
+    "currency": "USD",
+    "merchant": "Garmentory",
+    "url": "https://buy.trychannel3.com/cez6bsJ-JSGM-itI8Uu?o=01M3S0YE0HQ8RR4RZJEYBEBJBS&aid=01M5AFTN2RND2FH5QPME8VGEQ0"
+   }
+  ],
+  "beginner pottery wheel class": [
+   {
+    "id": "FOvPs4S",
+    "title": "Pottery Wheel",
+    "brand": "MindWare",
+    "image": "https://cdn.trychannel3.com/596f7e81-ed03-46b7-a292-15ccfcf88b46?aid=01M5AFTP68C377YTSPD1QJGR9F&mid=Z87s",
+    "price": 99.95,
+    "currency": "USD",
+    "merchant": "Kohl’s",
+    "url": "https://buy.trychannel3.com/FOvPs4S-Z87s-itI8Uu?o=01M2DEGTZ6B5XERCZKVB7824DR&aid=01M5AFTP68C377YTSPD1QJGR9F"
+   },
+   {
+    "id": "omHmfKt",
+    "title": "Pottery Wheel for Beginners",
+    "brand": "Oriental Trading Company",
+    "image": "https://cdn.trychannel3.com/6f0c3a08-3984-4bd3-b85f-06c4f82ac1af?aid=01M5AFTP68C377YTSPD1QJGR9F&mid=noGJ",
+    "price": 94.99,
+    "currency": "USD",
+    "merchant": "Oriental Trading",
+    "url": "https://buy.trychannel3.com/omHmfKt-noGJ-itI8Uu?o=01M3T78RCS28B1WWSXTXJE9QR8&aid=01M5AFTP68C377YTSPD1QJGR9F"
+   },
+   {
+    "id": "yZy3BKM",
+    "title": "Mini Pottery Wheel",
+    "brand": "VEVOR",
+    "image": "https://cdn.trychannel3.com/c81354ce-207b-4cc7-b188-96bb4be561b1?aid=01M5AFTP68C377YTSPD1QJGR9F&mid=BsaX",
+    "price": 52.9,
+    "currency": "USD",
+    "merchant": "Walmart",
+    "url": "https://buy.trychannel3.com/yZy3BKM-BsaX-itI8Uu?o=01M385TYTYWK1V4ZJ2YXFRMMN5&aid=01M5AFTP68C377YTSPD1QJGR9F"
+   }
+  ],
+  "original Blue Note jazz records": [
+   {
+    "id": "aQodUHf",
+    "title": "Presenting Joe Williams and Thad Jones/Mel Lewis, the Jazz Orchestra",
+    "brand": "Blue Note",
+    "image": "https://cdn.trychannel3.com/e3a96d5d-615e-496f-a7b8-f9a2b7824b10?aid=01M5AFTQ3VHMBD4S4PRVF1YSQ2&mid=p1PB",
+    "price": 19.68,
+    "currency": "USD",
+    "merchant": "Best Buy",
+    "url": "https://buy.trychannel3.com/aQodUHf-p1PB-itI8Uu?o=01KZ905SJ1NPZZ8RX7DXA9NB0A&aid=01M5AFTQ3VHMBD4S4PRVF1YSQ2"
+   },
+   {
+    "id": "V3NExGB",
+    "title": "On View At The Five Spot Cafe: The Complete Masters",
+    "brand": "Blue Note",
+    "image": "https://cdn.trychannel3.com/0967b1e6-0111-447f-9cf9-5ee92337b078?aid=01M5AFTQ3VHMBD4S4PRVF1YSQ2&mid=PfSj",
+    "price": 72.99,
+    "currency": "USD",
+    "merchant": "Worldwidestereo",
+    "url": "https://buy.trychannel3.com/V3NExGB-PfSj-itI8Uu?o=01M2QVZXEYKJZSJCCK7TK94PAD&aid=01M5AFTQ3VHMBD4S4PRVF1YSQ2"
+   },
+   {
+    "id": "MTJSnwy",
+    "title": "Birth of the Cool LP",
+    "brand": "Blue Note",
+    "image": "https://cdn.trychannel3.com/583fe6c2-0560-40d1-bce9-1f55c40e3b56?aid=01M5AFTQ3VHMBD4S4PRVF1YSQ2&mid=QetO",
+    "price": 26.98,
+    "currency": "USD",
+    "merchant": "Urban Outfitters",
+    "url": "https://buy.trychannel3.com/MTJSnwy-QetO-itI8Uu?o=01M15Z3S3DJ4ACNTJ4J0SJ8E3Q&aid=01M5AFTQ3VHMBD4S4PRVF1YSQ2"
+   }
+  ],
+  "portable classical music player": [
+   {
+    "id": "0HQUxxL",
+    "title": "FiiO DM13 Portable Stereo CD Player with Bluetooth",
+    "brand": "FiiO 播放器",
+    "image": "https://cdn.trychannel3.com/63ebf39c-1a1f-427f-86ee-54b858d5f27a?aid=01M5AFTR7KCDAXQME4PGB14YA8&mid=oHaU",
+    "price": 164.99,
+    "currency": "USD",
+    "merchant": "B&H",
+    "url": "https://buy.trychannel3.com/0HQUxxL-oHaU-itI8Uu?o=01M351P0KX9PMSCMKWPW3SF7EM&aid=01M5AFTR7KCDAXQME4PGB14YA8"
+   },
+   {
+    "id": "nih139t",
+    "title": "Portable CD Player",
+    "brand": "iLIVE",
+    "image": "https://cdn.trychannel3.com/2cab4b96-9193-450d-8b1a-c479de66589b?aid=01M5AFTR7KCDAXQME4PGB14YA8&mid=p1PB",
+    "price": 44.99,
+    "currency": "USD",
+    "merchant": "Best Buy",
+    "url": "https://buy.trychannel3.com/nih139t-p1PB-itI8Uu?o=01KXZY55H0RR3AQ8CDRZGKWMYQ&aid=01M5AFTR7KCDAXQME4PGB14YA8"
+   },
+   {
+    "id": "SIkCBb1",
+    "title": "Portable Digital Audio Hi-fi Player",
+    "brand": "MECHEN",
+    "image": "https://cdn.trychannel3.com/199fd39a-a71b-4fcb-b8b4-25c85cf234c2?aid=01M5AFTR7KCDAXQME4PGB14YA8&mid=BsaX",
+    "price": 82.99,
+    "currency": "USD",
+    "merchant": "Walmart",
+    "url": "https://buy.trychannel3.com/SIkCBb1-BsaX-itI8Uu?o=01M383R4FTJJ6XMED4MGQ3SDR0&aid=01M5AFTR7KCDAXQME4PGB14YA8"
+   }
+  ],
+  "Japanese ceramic tea bowl": [
+   {
+    "id": "aPKSbZ5",
+    "title": "Vintage Ceramic Tea Bowl, Ashigara, Japan, 1970s",
+    "brand": "Oki Sato",
+    "image": "https://cdn.trychannel3.com/078e09f1-c5ca-40bf-a905-856c66547d0f?aid=01M5AFTSZQPQEF6W770D4W5SW9&mid=pOrQ",
+    "price": 208,
+    "currency": "USD",
+    "merchant": "Chairish",
+    "url": "https://buy.trychannel3.com/aPKSbZ5-pOrQ-itI8Uu?o=01KGSYHAJQK2DN3Z63DTJNCDVD&aid=01M5AFTSZQPQEF6W770D4W5SW9"
+   },
+   {
+    "id": "HbpDNj9",
+    "title": "Late 20th Century Japanese Hagi Yaki Oni-Hagi Glazed Pottery Ceramic Tea Bowl",
+    "brand": "Chairs/Lighting",
+    "image": "https://cdn.trychannel3.com/2ae5fd32-7c36-4bbc-8ae2-51073decb739?aid=01M5AFTSZQPQEF6W770D4W5SW9&mid=pOrQ",
+    "price": 175,
+    "currency": "USD",
+    "merchant": "Chairish",
+    "url": "https://buy.trychannel3.com/HbpDNj9-pOrQ-itI8Uu?o=01KK5VDNKK8Q2S4YGTNTWJZ7FP&aid=01M5AFTSZQPQEF6W770D4W5SW9"
+   },
+   {
+    "id": "KpYzGP2",
+    "title": "Japanese Matcha Tea Bowl Blue & Brown Glaze",
+    "brand": "Aprika Life",
+    "image": "https://cdn.trychannel3.com/62d43c5e-c57a-486f-baea-c57209d77b94?aid=01M5AFTSZQPQEF6W770D4W5SW9&mid=0FQp",
+    "price": 59.99,
+    "currency": "USD",
+    "merchant": "Aprika",
+    "url": "https://buy.trychannel3.com/KpYzGP2-0FQp-itI8Uu?o=01M0QA2XJ3CQ1S5NETD28YRWXE&aid=01M5AFTSZQPQEF6W770D4W5SW9"
+   }
+  ]
+ },
+ "places": {
+  "pottery wheel class": {
+   "placeId": "ChIJ22YEGndbwokREuUAfFCJb50"
+  },
+  "pottery class": {
+   "placeId": "ChIJ2_PRbGpZwokRKz7-G4Ppz2Q"
+  }
+ },
+ "osm": {
+  "pottery wheel class": {
+   "name": "The Pottery Studio",
+   "area": "43C 9th Street, Brooklyn",
+   "rating": null,
+   "ratings": null,
+   "url": "https://www.openstreetmap.org/node/6433148367",
+   "source": "osm"
+  },
+  "pottery class": {
+   "name": "The Pottery Studio",
+   "area": "43C 9th Street, Brooklyn",
+   "rating": null,
+   "ratings": null,
+   "url": "https://www.openstreetmap.org/node/6433148367",
+   "source": "osm"
+  }
+ },
+ "attribution": {
+  "osm": "© OpenStreetMap contributors"
+ }
+}

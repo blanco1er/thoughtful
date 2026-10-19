@@ -49,8 +49,14 @@ button[disabled] { opacity: .55; cursor: default; }
 .gift div { padding: 8px 10px 10px; display: grid; gap: 2px; }
 .gift b { font-size: 14px; line-height: 1.25; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .gift span { font-size: 13px; color: var(--label-2); font-variant-numeric: tabular-nums; }
-.place { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; }
+.place { display: grid; gap: 2px; font-size: 16px; grid-template-columns: minmax(0, 1fr); }
 .place b { font-weight: 600; }
+.place .pl { font-size: 14px; color: var(--label-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.place .src { font-size: 12px; color: var(--label-2); }
+.gift .merchant { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gift div { min-width: 0; }
+.small { margin-top: 2px !important; }
+.gifts + .small { margin-bottom: 8px !important; }
 .small { font-size: 13px; color: var(--label-2); margin: 0; }
 .empty { text-align: center; padding: 26px 8px 16px; }
 .empty h1 { margin-bottom: 6px; }
@@ -73,7 +79,14 @@ button[disabled] { opacity: .55; cursor: default; }
 .wide .quote { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 16px; }
 .wide .headline { font-size: 18px; }
 .wide .gifts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.wide .gift b { font-size: 12px; -webkit-line-clamp: 2; }
+.wide .gift b { font-size: 12px; -webkit-line-clamp: 1; }
+.wide .gift img { aspect-ratio: auto; height: 84px; }
+.wide .place { font-size: 15px; }
+.wide .moment.focus { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); grid-template-rows: none; column-gap: 22px; }
+.wide .moment.focus .col { display: grid; gap: 8px; align-content: start; grid-template-columns: minmax(0, 1fr); }
+.wide .moment.focus .gift img { height: 150px; }
+.wide .moment.focus .gift b { -webkit-line-clamp: 2; }
+.wide .place .pl { font-size: 13px; }
 .wide .gift span { font-size: 12px; }
 .wide .gift div { padding: 6px 8px 8px; }
 .wide .mono { width: 32px; height: 32px; font-size: 15px; }
@@ -152,6 +165,24 @@ function render() {
   }
   const revealed = !shared || c.revealed;
   let html = `${top}<h1>${esc(summary(c))}</h1><div class="moments">`;
+  const wideNow = document.documentElement.classList.contains('wide');
+  const occ = c.elements.find((x) => x.type === 'occasion');
+  if (wideNow && revealed && occ) {
+    // Surprise shown on a shared screen: the occasion takes the whole card for a moment (words + place on the left,
+    // three gifts on the right), then "Hide" brings the evening back. Covered again after 10 minutes anyway.
+    const e = occ;
+    html += `<section class="moment focus"><div class="col"><p class="kicker">${esc(T('occasion.' + e.kind))} · ${esc(dayLabel(e.date))}</p>
+      <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)} <span>· ${esc(when(e.daysLeft))}</span></p></div>
+      ${e.evidence.slice(0, 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p><p class="quote">“${esc(n.quote)}”</p>`).join('') || `<p class="meta">${esc(T('occasion.noWords', { name: e.person.name }))}</p>`}
+      ${extrasBlock(e, 'place')}
+      <div class="actions"><button class="plain" data-act="hide">${esc(T('occasion.hide'))}</button></div></div>
+      <div class="col">${extrasBlock(e, 'gifts')}</div></section>`;
+    card.innerHTML = html + '</div>';
+    card.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', onAct));
+    bindLinks();
+    if (!extras) loadExtras();
+    return;
+  }
   for (const e of c.elements) {
     if (e.type === 'confirm') {
       const relTxt = e.person.relation ? ` <span>· ${esc(rel(e.person.relation))}</span>` : '';
@@ -165,7 +196,7 @@ function render() {
       if (!revealed) {
         html += `<div class="cover"><p><strong>${esc(T('occasion.hidden.t', { name: e.person.name }))}</strong>${esc(T('occasion.hidden.d'))}</p><button data-act="show">${esc(T('occasion.show'))}</button></div>`;
       } else {
-        html += e.evidence.length ? e.evidence.slice(0, shared ? 1 : 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p>${quoteBlock(n)}`).join('') : `<p class="meta">${esc(T('occasion.noWords', { name: e.person.name }))}</p>`;
+        html += e.evidence.length ? e.evidence.slice(0, shared ? 1 : 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p>${shared ? '' : quoteBlock(n)}`).join('') : `<p class="meta">${esc(T('occasion.noWords', { name: e.person.name }))}</p>`;
         html += extrasBlock(e);
         html += `<div class="actions">${shared ? `<button class="plain" data-act="hide">${esc(T('occasion.hide'))}</button>` : ''}</div>`;
       }
@@ -188,18 +219,25 @@ function render() {
   if (revealed && c.elements.some((e) => e.type === 'occasion') && !extras) loadExtras();
 }
 
-function extrasBlock(e) {
+function extrasBlock(e, part = 'all') {
+  if (!extras && part === 'place') return '';
   if (!extras) return `<div class="gifts"><div class="sk" style="height:150px"></div><div class="sk" style="height:150px"></div><div class="sk" style="height:150px"></div></div>`;
   let h = '';
   const g = extras.gifts || {};
-  if (g.products?.length) {
-    h += `<p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" data-link="${esc(p.url)}"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" onerror="this.style.visibility='hidden'"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))} · ${esc(p.merchant)}</span></div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}</p>`;
+  if (part === 'place') { /* gifts drawn elsewhere */ }
+  else if (g.products?.length) {
+    h += `<p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" data-link="${esc(p.url)}"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))}</span>${p.merchant ? `<span class="merchant">${esc(p.merchant)}</span>` : ''}</div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p>`;
   } else if (g.status === 'no_key') h += `<p class="small">${esc(T('occasion.gifts.nokey'))}</p>`;
   else if (g.status === 'error') h += `<p class="small">${esc(T('occasion.gifts.error'))}</p>`;
   else if (e.giftQuery) h += `<p class="small">${esc(T('occasion.gifts.none'))}</p>`;
+  if (part === 'gifts') return h;
   const pl = extras.place || {};
-  if (pl.place) h += `<p class="kicker">${esc(T('occasion.place'))}</p><div class="place"><span><b>${esc(pl.place.name)}</b>${pl.place.area ? ' · ' + esc(pl.place.area) : ''}</span><span class="meta">${pl.place.rating ? esc(pl.place.rating.toFixed(1)) + ' ★ · ' + esc(pl.place.ratings) : ''}</span></div>`;
-  else if (pl.status === 'no_key' && e.experienceQuery) h += `<p class="small">${esc(T('occasion.place.nokey'))}</p>`;
+  if (pl.place) {
+    const p = pl.place;
+    const rev = p.rating ? `${new Intl.NumberFormat(loc(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(p.rating)} ★${p.ratings ? ' · ' + T('occasion.reviews', { n: new Intl.NumberFormat(loc()).format(p.ratings) }) : ''}` : '';
+    const src = p.source === 'google' ? T('place.google') : p.source === 'osm' ? T('place.osm') : '';
+    h += `<p class="kicker">${esc(T('occasion.place'))}</p><div class="place"><b>${esc(p.name)}</b>${p.area ? `<span class="pl">${esc(p.area)}</span>` : ''}${rev ? `<span class="pl">${esc(rev)}</span>` : ''}${src ? `<span class="src">${esc(src)}</span>` : ''}</div>`;
+  }
   else if (pl.status === 'no_area' && e.experienceQuery) h += `<p class="small">${esc(T('occasion.place.noarea'))}</p>`;
   return h;
 }
@@ -242,6 +280,8 @@ addEventListener('message', (e) => {
   else if (m.method === 'ui/notifications/host-context-changed') applyContext(m.params);
   else if (m.method === 'ui/resource-teardown') parent.postMessage({ jsonrpc: '2.0', id: m.id, result: {} }, '*');
 });
+
+addEventListener('error', (e) => { if (e.target?.tagName === 'IMG') e.target.style.visibility = 'hidden'; }, true);
 
 new ResizeObserver(() => notify('ui/notifications/size-changed', { width: Math.ceil(document.documentElement.scrollWidth), height: Math.ceil(card.getBoundingClientRect().height) })).observe(card);
 

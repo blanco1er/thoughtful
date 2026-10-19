@@ -7,6 +7,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { handleMcp } from './mcp.mjs';
+import { viewLang } from './app.mjs';
 
 const WEB = fileURLToPath(new URL('../web/', import.meta.url));
 const I18N = fileURLToPath(new URL('./i18n.mjs', import.meta.url));
@@ -108,7 +109,8 @@ export function createServer(ctx, { host = '127.0.0.1', port = 4317, dataDir } =
       if (url.pathname === '/img') return proxyImage(ctx, url, res);
       if (url.pathname === '/healthz') return send(res, 200, { ok: true, mode: ctx.mode });
       if (url.pathname.startsWith('/api/')) {
-        const r = await routes(req, res, url);
+        const asked = String(req.headers['x-thoughtful-lang'] || '').slice(0, 2);
+        const r = await viewLang.run(['en', 'fr'].includes(asked) ? asked : undefined, () => routes(req, res, url));
         if (r === null) return send(res, 405, { error: 'method_not_allowed' });
         return;
       }

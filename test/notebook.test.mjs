@@ -97,3 +97,16 @@ test('memories expire: past plans are done, stale unconfirmed notes expire', () 
 test('fact text carries who, what and when', () => {
   assert.equal(factTextFor({ kind: 'like', textEn: 'Loves jazz', saidAt: T0, eventDate: null }, { name: 'Theo', relation: 'friend' }), 'Theo (friend) likes: Loves jazz. Heard by Bee on 2026-10-19, kept with Thoughtful.');
 });
+
+test('language: an old default "en" is not taken as the owner\'s choice', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { openStore } = await import('../src/store.mjs');
+  const { tmpDir } = await import('./helpers.mjs');
+  const dir = tmpDir();
+  fs.mkdirSync(path.join(dir, 'live'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'live', 'notebook.json'), JSON.stringify({ settings: { lang: 'en' } }));
+  assert.equal(openStore(dir, 'live').state.settings.lang, null);
+  fs.writeFileSync(path.join(dir, 'live', 'notebook.json'), JSON.stringify({ settings: { lang: 'fr', langChosen: true } }));
+  assert.equal(openStore(dir, 'live').state.settings.lang, 'fr');
+});

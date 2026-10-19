@@ -1,5 +1,6 @@
 // Application context shared by the web API and the MCP server: one store, one Bee source and one engine per mode.
 import fs from 'node:fs';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import path from 'node:path';
 import { config } from './config.mjs';
 import { openStore } from './store.mjs';
@@ -10,9 +11,10 @@ import { createEngine } from './engine.mjs';
 import { confirmItem, rejectItem, forgetItem, markDone, confirmPerson, personView } from './notebook.mjs';
 import { tonight, localDay } from './ritual.mjs';
 import { planNudge, atLocal } from './nudges.mjs';
-import { findGifts, findPlace, keysStatus } from './lookups.mjs';
+import { findGifts, findPlace, findPlaceOsm, keysStatus } from './lookups.mjs';
 
 const DAY = 86_400_000;
+export const viewLang = new AsyncLocalStorage();
 const SNAPSHOT = new URL('../sample/lookups-snapshot.json', import.meta.url);
 function loadLookupSnapshot() { try { return JSON.parse(fs.readFileSync(SNAPSHOT, 'utf8')); } catch { return null; } }
 
@@ -27,7 +29,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
   fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const prefsFile = path.join(dataDir, 'prefs.json');
   const prefs = (() => { try { return JSON.parse(fs.readFileSync(prefsFile, 'utf8')); } catch { return {}; } })();
-  const lk = lookups || { findGifts, findPlace, keysStatus };
+  const lk = lookups || { findGifts, findPlace, findPlaceOsm, keysStatus };
   const modes = {};
   let mode = initialMode || prefs.mode || 'live';
 
@@ -47,7 +49,8 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
 
   const cur = () => open(mode);
   const S = () => cur().store.state;
-  const lang = () => S().settings.lang || 'en';
+  // The language a screen asks for (X-Thoughtful-Lang, per request) wins over the saved one; then English.
+  const lang = () => viewLang.getStore() || S().settings.lang || 'en';
   const tz = () => S().settings.timezone || 'Europe/Paris';
   const save = () => cur().store.save();
   const log = (k, m) => cur().store.log(k, m);
@@ -179,7 +182,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
     reveal(on = true) { S().reveals = on ? { [localDay(now(), tz())]: now() } : {}; save(); return { ok: true }; },
     settings(body = {}) {
       const s = S().settings;
-      if (body.lang && ['en', 'fr'].includes(body.lang)) s.lang = body.lang;
+      if (body.lang && ['en', 'fr'].includes(body.lang)) { s.lang = body.lang; s.langChosen = true; }
       if (typeof body.ritualTime === 'string' && /^\d{2}:\d{2}$/.test(body.ritualTime)) s.ritualTime = body.ritualTime;
       if (body.maxNudgesPerDay !== undefined) s.maxNudgesPerDay = Math.max(0, Math.min(2, Number(body.maxNudgesPerDay) | 0));
       if (body.quietMinutes !== undefined) s.quietMinutes = Math.max(10, Math.min(60, Number(body.quietMinutes) | 0));
@@ -193,7 +196,7 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       if (consent !== true) throw Object.assign(new Error('consent_required'), { status: 400 });
       if (m) ctx.setMode(m);
       const s = S().settings;
-      if (l && ['en', 'fr'].includes(l)) s.lang = l;
+      if (l && ['en', 'fr'].includes(l)) { s.lang = l; s.langChosen = true; }
       s.consent = { at: now(), version: 1 };
       save();
       return { ok: true };
@@ -209,9 +212,9 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
           }
         }
       }
-      const keep = { lang: s.settings.lang };
+      const keep = { lang: s.settings.lang, langChosen: s.settings.langChosen };
       c.store.reset();
-      c.store.state.settings.lang = keep.lang;
+      Object.assign(c.store.state.settings, keep);
       if (mode === 'sample') { delete modes.sample; open('sample'); }
       c.store.save();
       return { ok: true, beeFactsDeleted: deleted };
@@ -247,6 +250,12 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       const el = card.elements.find((e) => e.type === kind);
       if (!el) return { gifts: { status: 'empty', products: [] }, place: { status: 'empty', place: null } };
       const s = S();
+      if (mode === 'sample') {
+        // Reuse the recorded Google place ID (the only Google data we may keep); details are fetched live with a key.
+        const id = loadLookupSnapshot()?.places?.[el.experienceQuery]?.placeId;
+        const k = `placeid:${String(el.experienceQuery || '').toLowerCase()}|${String(s.settings.homeArea || '').toLowerCase()}`;
+        if (id && !s.cache[k]) s.cache[k] = { at: now(), value: { placeId: id } };
+      }
       let [gifts, place] = await Promise.all([
         lk.findGifts(s, el.giftQuery),
         lk.findPlace(s, el.experienceQuery, s.settings.homeArea, { lang: lang() }),
@@ -255,7 +264,10 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       if (mode === 'sample') {
         const snap = loadLookupSnapshot();
         if (gifts.status === 'no_key' && snap?.gifts?.[el.giftQuery]) gifts = { status: 'ok', products: snap.gifts[el.giftQuery], snapshot: snap.recordedOn };
-        if (place.status === 'no_key' && snap?.places?.[el.experienceQuery]) place = { status: 'ok', place: snap.places[el.experienceQuery], snapshot: snap.recordedOn };
+        // Google data is never stored (only its place ID): without a key, the OpenStreetMap result is shown instead.
+        if (place.status === 'no_key' && snap?.osm?.[el.experienceQuery]) place = { status: 'ok', place: snap.osm[el.experienceQuery], snapshot: snap.recordedOn };
+      } else if (place.status === 'no_key' && lk.findPlaceOsm) {
+        place = await lk.findPlaceOsm(s, el.experienceQuery, s.settings.homeArea, { lang: lang() });
       }
       save();
       return { gifts, place, giftQuery: el.giftQuery, experienceQuery: el.experienceQuery };

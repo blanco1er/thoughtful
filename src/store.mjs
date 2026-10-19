@@ -10,7 +10,8 @@ export function emptyState() {
   return {
     version: SCHEMA_VERSION,
     settings: {
-      lang: 'en',
+      lang: null, // null = follow the device language until the owner picks one
+      langChosen: false,
       consent: null, // { at, version } once the owner agreed on the first-run screen
       ownerName: '',
       ritualTime: '20:05', // just after Bee's own 8 PM daily summary
@@ -63,7 +64,9 @@ export function openStore(dir, mode = 'live') {
 
 function migrate(s) {
   const base = emptyState();
-  return { ...base, ...s, settings: { ...base.settings, ...(s.settings || {}) }, sync: { ...base.sync, ...(s.sync || {}) }, spend: { ...base.spend, ...(s.spend || {}) } };
+  const settings = { ...base.settings, ...(s.settings || {}) };
+  if (!settings.langChosen) settings.lang = null; // older files saved the default 'en' as if it were a choice
+  return { ...base, ...s, settings, sync: { ...base.sync, ...(s.sync || {}) }, spend: { ...base.spend, ...(s.spend || {}) } };
 }
 
 export const newId = (prefix) => prefix + '_' + crypto.randomBytes(5).toString('hex');

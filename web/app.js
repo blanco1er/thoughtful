@@ -3,8 +3,10 @@ import { t as tr, LOCALE, rel } from '/i18n.mjs';
 
 const root = document.getElementById('root');
 let S = null; // last /api/state
-let lang = (() => { try { return localStorage.getItem('thoughtful.lang') || (navigator.language || 'en').slice(0, 2); } catch { return 'en'; } })();
-if (!['en', 'fr'].includes(lang)) lang = 'en';
+// Language: a manual EN/FR choice wins (kept on this device and in the notebook); otherwise the device language.
+const manualLang = () => { try { return localStorage.getItem('thoughtful.lang.manual'); } catch { return null; } };
+const deviceLang = () => (/^fr\b/i.test(navigator.language || '') ? 'fr' : 'en');
+let lang = ['en', 'fr'].includes(manualLang()) ? manualLang() : deviceLang();
 let extras = null, extrasFor = null;
 const T = (k, v) => tr(lang, k, v);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -26,13 +28,14 @@ document.getElementById('splash-text').textContent = T('loading');
 
 // ---------- API ----------
 async function api(path, body) {
-  const r = await fetch(path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const headers = { 'X-Thoughtful-Lang': lang };
+  const r = await fetch(path, body === undefined ? { headers } : { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (!r.ok) throw Object.assign(new Error((await r.json().catch(() => ({}))).error || r.status), { status: r.status });
   return r.json();
 }
 async function load() {
   S = await api('/api/state');
-  if (S.settings?.lang && S.settings.lang !== lang && !S.firstRun) setLang(S.settings.lang, false);
+  if (!manualLang() && S.settings?.langChosen && ['en', 'fr'].includes(S.settings.lang) && S.settings.lang !== lang) setLang(S.settings.lang, false);
   return S;
 }
 
@@ -74,8 +77,9 @@ async function act(btn, fn) {
 function setLang(l, persist = true) {
   lang = l;
   document.documentElement.lang = l;
-  try { localStorage.setItem('thoughtful.lang', l); } catch {}
-  if (persist && S && !S.firstRun) api('/api/settings', { lang: l }).catch(() => {});
+  if (!persist) return;
+  try { localStorage.setItem('thoughtful.lang.manual', l); } catch {}
+  if (S && !S.firstRun) api('/api/settings', { lang: l }).catch(() => {});
 }
 
 // ---------- chrome ----------
@@ -198,22 +202,27 @@ function tonightView() {
   }
 }
 
+function placeHtml(pl) {
+  const p = pl.place;
+  const reviews = p.rating ? `${new Intl.NumberFormat(loc(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(p.rating)} ★${p.ratings ? ' · ' + T('occasion.reviews', { n: new Intl.NumberFormat(loc()).format(p.ratings) }) : ''}` : '';
+  const source = p.source === 'google' ? T('place.google') : p.source === 'osm' ? T('place.osm') : '';
+  return `<a class="place" href="${esc(p.url || '#')}" target="_blank" rel="noopener noreferrer"><b>${esc(p.name)}</b>${p.area ? `<span class="place-line">${esc(p.area)}</span>` : ''}${reviews ? `<span class="place-line">${esc(reviews)}</span>` : ''}${source ? `<span class="place-src">${esc(source)}</span>` : ''}</a>`;
+}
+
 function extrasHtml(e) {
   if (!e.giftQuery && !e.experienceQuery) return '';
-  if (!extras) return `<div class="gifts" aria-hidden="true"><div class="sk" style="aspect-ratio:.8"></div><div class="sk" style="aspect-ratio:.8"></div><div class="sk" style="aspect-ratio:.8"></div></div>`;
+  if (!extras) return `<div class="extras"><div class="gifts" aria-hidden="true"><div class="sk" style="aspect-ratio:.8"></div><div class="sk" style="aspect-ratio:.8"></div><div class="sk" style="aspect-ratio:.8"></div></div></div>`;
   let h = '';
   const g = extras.gifts || {};
   if (g.products?.length) {
-    h += `<p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))} · ${esc(p.merchant)}</span></div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p>`;
+    h += `<section class="extra"><p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span class="price">${esc(money(p.price, p.currency))}</span>${p.merchant ? `<span class="merchant">${esc(p.merchant)}</span>` : ''}</div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p></section>`;
   } else if (e.giftQuery) {
-    h += `<p class="small">${esc(T(g.status === 'no_key' ? 'occasion.gifts.nokey' : g.status === 'error' ? 'occasion.gifts.error' : 'occasion.gifts.none'))}</p>`;
+    h += `<p class="small extra">${esc(T(g.status === 'no_key' ? 'occasion.gifts.nokey' : g.status === 'error' ? 'occasion.gifts.error' : 'occasion.gifts.none'))}</p>`;
   }
   const pl = extras.place || {};
-  if (pl.place) {
-    h += `<p class="kicker">${esc(T('occasion.place'))}</p><a class="place" href="${esc(pl.place.url || pl.place.mapsUrl || '#')}" target="_blank" rel="noopener noreferrer"><span><b>${esc(pl.place.name)}</b>${pl.place.area ? `<br><span class="small">${esc(pl.place.area)}</span>` : ''}</span><span class="meta">${pl.place.rating ? `${esc(pl.place.rating.toFixed(1))} ★ · ${esc(pl.place.ratings)}` : ''}</span></a>`;
-  } else if (e.experienceQuery && pl.status === 'no_key') h += `<p class="small">${esc(T('occasion.place.nokey'))}</p>`;
-  else if (e.experienceQuery && pl.status === 'no_area') h += `<p class="small">${esc(T('occasion.place.noarea'))}</p>`;
-  return h;
+  if (pl.place) h += `<section class="extra"><p class="kicker">${esc(T('occasion.place'))}</p>${placeHtml(pl)}</section>`;
+  else if (e.experienceQuery && pl.status === 'no_area') h += `<p class="small extra">${esc(T('occasion.place.noarea'))}</p>`;
+  return `<div class="extras">${h}</div>`;
 }
 
 function peopleView() {

@@ -32,7 +32,7 @@ function relTable() {
 }
 function pickCardStrings(lang) {
   const out = {};
-  for (const k of Object.keys(STRINGS.en)) if (/^(tonight|confirm|occasion|see|promise|kind|when|date|app)\./.test(k)) out[k] = STRINGS[lang][k] ?? STRINGS.en[k];
+  for (const k of Object.keys(STRINGS.en)) if (/^(tonight|confirm|occasion|see|promise|kind|when|date|app|place)\./.test(k)) out[k] = STRINGS[lang][k] ?? STRINGS.en[k];
   return out;
 }
 
@@ -157,7 +157,14 @@ export function createMcpServer(ctx, { publicBase = '' } = {}) {
     const x = await ctx.extras('occasion');
     const proxied = (u) => (u && publicBase ? `${publicBase}/img?u=${encodeURIComponent(u)}` : u);
     const gifts = { ...x.gifts, products: (x.gifts.products || []).map((p) => ({ ...p, image: proxied(p.image) })) };
-    return { content: [{ type: 'text', text: lang() === 'fr' ? 'Idées affichées sur l\'écran.' : 'Ideas are on the screen.' }], structuredContent: { kind: 'extras', gifts, place: x.place } };
+    // Voice-complete without spoiling the surprise: counts only, never a product or a place name.
+    const n = gifts.products?.length || 0;
+    const who = ctx.tonight().elements.find((e) => e.type === 'occasion')?.person?.name || '';
+    const fr = lang() === 'fr';
+    const text = n || x.place?.place
+      ? (fr ? `${n ? `${n} idée${n > 1 ? 's' : ''} de cadeau pour ${who}` : `Une idée pour ${who}`}${x.place?.place ? ' et un lieu où aller ensemble' : ''}. Je ne les dis pas à voix haute, pour garder la surprise.` : `${n ? `${n} gift idea${n > 1 ? 's' : ''} for ${who}` : `An idea for ${who}`}${x.place?.place ? ', and a place to go together' : ''}. I won't say them out loud, to keep the surprise.`)
+      : (fr ? `Pas encore d'idée de cadeau pour ${who}.` : `No gift idea for ${who} yet.`);
+    return { content: [{ type: 'text', text }], structuredContent: { kind: 'extras', gifts, place: x.place } };
   });
 
   server.registerTool('reveal_card', {
@@ -168,7 +175,11 @@ export function createMcpServer(ctx, { publicBase = '' } = {}) {
     _meta: { ui: { resourceUri: c.uri, visibility: ['app'] } },
   }, async ({ show }) => {
     ctx.reveal(show);
-    return withCard(say(show ? 'Shown.' : 'Hidden.'), cardPayload());
+    const fr = lang() === 'fr';
+    const text = show
+      ? (fr ? 'La surprise est visible sur cet écran pendant dix minutes, puis elle se cache toute seule.' : 'The surprise is visible on this screen for ten minutes, then it hides itself again.')
+      : (fr ? 'La surprise est de nouveau cachée.' : 'The surprise is hidden again.');
+    return withCard(say(text), cardPayload());
   });
 
   server.registerTool('forget_note', {
