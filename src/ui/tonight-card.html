@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thoughtful tonight</title>
+<style>
+/* Thoughtful evening card. Authored on a 768-wide base canvas, one root zoom per surface (Echo Show 8/15).
+   Warm neutrals, one accent (terracotta) for the single primary action. AA contrast in both themes. */
+:root {
+  color-scheme: light dark;
+  --bg: #fbf8f4; --surface: #ffffff; --label: #1f1a16; --label-2: #6a5f55; --line: rgba(70, 50, 30, .14);
+  --fill: rgba(70, 50, 30, .07); --accent: #b4471f; --accent-text: #a63f1a; --on-accent: #fff; --mono: #efe7dd; --mono-text: #5b4f45;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif;
+  --rounded: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+}
+:root[data-theme="dark"] {
+  --bg: #1a1612; --surface: #221d18; --label: #f4eee7; --label-2: #b3a89c; --line: rgba(255, 240, 225, .12);
+  --fill: rgba(255, 240, 225, .08); --accent: #b4471f; --accent-text: #f09a70; --mono: #2f2822; --mono-text: #d7cabd;
+}
+html, body { margin: 0; background: transparent; color: var(--label); -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; }
+.card { background: var(--bg); border-radius: 22px; padding: 22px 26px 24px; display: grid; gap: 4px; grid-template-columns: minmax(0, 1fr); }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; color: var(--label-2); margin: 0 0 6px; }
+.top b { font-weight: 600; color: var(--label); letter-spacing: -0.01em; }
+h1 { margin: 0 0 10px; font: 700 28px/1.18 var(--rounded); letter-spacing: -0.015em; text-wrap: balance; }
+.moment { border-top: 1px solid var(--line); padding: 16px 0 4px; display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+.kicker { font-size: 14px; color: var(--label-2); margin: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.mono { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--mono); color: var(--mono-text); display: grid; place-items: center; font: 600 17px/1 var(--rounded); }
+.headline { margin: 0; font-size: 21px; line-height: 1.25; font-weight: 600; letter-spacing: -0.01em; min-width: 0; overflow-wrap: anywhere; }
+.headline span { color: var(--label-2); font-weight: 500; }
+.quote { margin: 0; font-size: 17px; line-height: 1.4; color: var(--label); padding-left: 14px; position: relative; overflow-wrap: anywhere; }
+.quote::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2px; border-radius: 2px; background: var(--line); }
+.meta { margin: 0; font-size: 14px; color: var(--label-2); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+button { font: 600 17px/1 inherit; font-family: inherit; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 0; cursor: pointer; color: var(--label); background: var(--fill); }
+button.primary { background: var(--accent); color: var(--on-accent); }
+button.plain { background: transparent; color: var(--accent-text); padding: 0 12px; }
+button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 2px; }
+button:active { transform: scale(.97); }
+button[disabled] { opacity: .55; cursor: default; }
+.cover { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--fill); border-radius: 16px; padding: 14px 16px; }
+.cover p { margin: 0; font-size: 15px; color: var(--label-2); }
+.cover strong { display: block; font-size: 18px; color: var(--label); margin-bottom: 2px; }
+.gifts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.gift { background: var(--surface); border-radius: 14px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; text-decoration: none; color: inherit; border: 1px solid var(--line); }
+.gift img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff; display: block; }
+.gift div { padding: 8px 10px 10px; display: grid; gap: 2px; }
+.gift b { font-size: 14px; line-height: 1.25; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gift span { font-size: 13px; color: var(--label-2); font-variant-numeric: tabular-nums; }
+.place { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; }
+.place b { font-weight: 600; }
+.small { font-size: 13px; color: var(--label-2); margin: 0; }
+.empty { text-align: center; padding: 26px 8px 16px; }
+.empty h1 { margin-bottom: 6px; }
+.empty p { margin: 0 auto; max-width: 30em; color: var(--label-2); font-size: 17px; line-height: 1.45; }
+.sk { height: 14px; border-radius: 7px; background: var(--fill); }
+.sample { font-size: 13px; color: var(--label-2); }
+/* Shared landscape screens (Echo Show 8/15): the three moments sit side by side so the whole evening fits on one
+   screen, readable from across the room. Quotes are clamped; nothing scrolls. */
+.wide .card { padding: 22px 26px 22px; }
+.wide h1 { font-size: 24px; margin-bottom: 12px; }
+.wide .moment { gap: 6px; }
+.wide .kicker { font-size: 13px; }
+.wide .meta { font-size: 13px; }
+.wide .small { font-size: 12px; }
+.wide .actions { flex-wrap: nowrap; gap: 6px; }
+.wide .cover { padding: 12px 12px; }
+.wide .moments { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 14px; align-items: stretch; }
+.wide .moment { border-top: 0; background: var(--surface); border-radius: 18px; padding: 16px 16px 14px; align-content: start; grid-template-rows: auto auto auto 1fr auto; }
+.wide .moment .actions { align-self: end; }
+.wide .quote { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 16px; }
+.wide .headline { font-size: 18px; }
+.wide .gifts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.wide .gift b { font-size: 12px; -webkit-line-clamp: 2; }
+.wide .gift span { font-size: 12px; }
+.wide .gift div { padding: 6px 8px 8px; }
+.wide .mono { width: 32px; height: 32px; font-size: 15px; }
+.wide button { min-height: 44px; padding: 0 16px; font-size: 16px; white-space: nowrap; }
+.wide button.plain { padding: 0 8px; }
+@media (max-width: 520px) { .card { padding: 18px 18px 20px; } h1 { font-size: 24px; } .gifts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; } }
+@media (prefers-reduced-motion: reduce) { button:active { transform: none; } }
+</style>
+</head>
+<body>
+<main class="card" id="card" aria-live="polite">
+  <p class="top"><b>Thoughtful</b><span></span></p>
+  <div class="sk" style="width:62%;height:26px"></div>
+  <div class="sk" style="width:88%;margin-top:14px"></div>
+  <div class="sk" style="width:45%;margin-top:8px"></div>
+</main>
+<script>
+const DICT = /*__STRINGS__*/{};
+let lang = 'en', shared = true, state = null, extras = null, busy = false;
+const T = (k, v = {}) => String((DICT[lang] || DICT.en || {})[k] ?? (DICT.en || {})[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const loc = () => (lang === 'fr' ? 'fr-FR' : 'en-US');
+const dayLabel = (d) => new Intl.DateTimeFormat(loc(), { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(d + 'T12:00:00Z'));
+const shortDate = (ms) => new Intl.DateTimeFormat(loc(), { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(ms));
+const money = (n, c) => new Intl.NumberFormat(loc(), { style: 'currency', currency: c || 'USD', maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
+const initial = (n) => esc(String(n || '?').trim().charAt(0).toUpperCase());
+const when = (d) => (d === 0 ? T('when.today') : d === 1 ? T('when.tomorrow') : T('when.in', { d }));
+
+let nextId = 0; const waiting = new Map();
+const rpc = (method, params) => new Promise((resolve, reject) => { const id = ++nextId; waiting.set(id, { resolve, reject }); parent.postMessage({ jsonrpc: '2.0', id, method, params }, '*'); });
+const notify = (method, params) => parent.postMessage({ jsonrpc: '2.0', method, params }, '*');
+const call = (name, args = {}) => rpc('tools/call', { name, arguments: args });
+const card = document.getElementById('card');
+
+function applyContext(ctx = {}) {
+  if (ctx.theme) document.documentElement.dataset.theme = ctx.theme;
+  if (typeof ctx.isMobile === 'boolean') shared = !ctx.isMobile;
+  if (ctx.deviceClass && /phone|mobile/i.test(ctx.deviceClass)) shared = false;
+  const w = ctx.containerDimensions?.width || ctx.containerDimensions?.maxWidth || ctx.maxWidth;
+  const wide = shared && (w || innerWidth) >= 900;
+  document.documentElement.classList.toggle('wide', wide);
+  // one root scale: columns are authored on a 960-wide canvas, the single column on 768
+  if (w) document.documentElement.style.zoom = String(wide ? Math.max(1, Math.min(1.5, w / 960)) : Math.max(1, Math.min(1.667, w / 768)));
+  if (state) render();
+}
+
+function summary(c) {
+  const bits = [];
+  const occ = c.elements.find((e) => e.type === 'occasion');
+  const see = c.elements.find((e) => e.type === 'see');
+  const conf = c.elements.find((e) => e.type === 'confirm');
+  const prom = c.elements.find((e) => e.type === 'promise');
+  if (occ) bits.push(occ.kind === 'birthday' ? T(occ.daysLeft === 0 ? 'tonight.sum.birthday.0' : occ.daysLeft === 1 ? 'tonight.sum.birthday.1' : 'tonight.sum.birthday', { name: occ.person.name, d: occ.daysLeft }) : T('tonight.sum.occasion', { name: occ.person.name, what: T('occasion.' + occ.kind).toLowerCase(), d: occ.daysLeft }));
+  if (see) bits.push(T('tonight.sum.see', { name: see.person.name, when: when(see.daysLeft) }));
+  if (conf) bits.push(T(conf.left > 1 ? 'tonight.sum.confirm.n' : 'tonight.sum.confirm', { n: conf.left }));
+  if (prom) bits.push(T('tonight.sum.promise', { name: prom.person.name }));
+  if (!bits.length) return '';
+  const s = bits.map((b, i) => (i ? b.charAt(0).toLowerCase() + b.slice(1) : b));
+  return s.length === 1 ? s[0] + '.' : s.slice(0, -1).join(', ') + (lang === 'fr' ? ' et ' : ', and ') + s[s.length - 1] + '.';
+}
+
+function quoteBlock(n) {
+  return `<p class="quote">“${esc(n.quote)}”</p><p class="meta">${esc(T(n.source === 'bee_fact' ? 'confirm.heardBee' : 'confirm.heard', { date: shortDate(n.saidAt) }))}${n.mentions > 1 ? ' · ' + n.mentions + '×' : ''}</p>`;
+}
+
+function render() {
+  const c = state.card;
+  lang = state.lang || lang;
+  document.documentElement.lang = lang;
+  const top = `<p class="top"><b>${esc(T('app.name'))}</b><span>${esc(dayLabel(c.day))}${state.mode === 'sample' ? ' · <span class="sample">' + esc(lang === 'fr' ? 'foyer exemple' : 'sample household') + '</span>' : ''}</span></p>`;
+  if (!c.elements.length) {
+    card.innerHTML = `${top}<div class="empty"><h1>${esc(T('tonight.nothing.t'))}</h1><p>${esc(T('tonight.nothing.d'))}</p></div>`;
+    return;
+  }
+  const revealed = !shared || c.revealed;
+  let html = `${top}<h1>${esc(summary(c))}</h1><div class="moments">`;
+  for (const e of c.elements) {
+    if (e.type === 'confirm') {
+      const rel = e.person.relation ? ` <span>· ${esc(e.person.relation)}</span>` : '';
+      html += `<section class="moment"><p class="kicker">${esc(T('confirm.title'))}</p>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)}${rel}<br>${esc(e.item.text)}</p></div>
+        ${quoteBlock(e.item)}
+        <div class="actions"><button class="primary" data-act="yes" data-id="${esc(e.item.id)}">${esc(T('confirm.yes'))}</button><button data-act="no" data-id="${esc(e.item.id)}">${esc(T('confirm.no'))}</button></div></section>`;
+    } else if (e.type === 'occasion') {
+      html += `<section class="moment"><p class="kicker">${esc(T('occasion.' + e.kind))} · ${esc(dayLabel(e.date))}</p>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.person.name)} <span>· ${esc(when(e.daysLeft))}</span></p></div>`;
+      if (!revealed) {
+        html += `<div class="cover"><p><strong>${esc(T('occasion.hidden.t', { name: e.person.name }))}</strong>${esc(T('occasion.hidden.d'))}</p><button data-act="show">${esc(T('occasion.show'))}</button></div>`;
+      } else {
+        html += e.evidence.length ? e.evidence.slice(0, shared ? 1 : 2).map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p>${quoteBlock(n)}`).join('') : `<p class="meta">${esc(T('occasion.noWords', { name: e.person.name }))}</p>`;
+        html += extrasBlock(e);
+        html += `<div class="actions">${shared ? `<button class="plain" data-act="hide">${esc(T('occasion.hide'))}</button>` : ''}</div>`;
+      }
+      html += `</section>`;
+    } else if (e.type === 'see') {
+      html += `<section class="moment"><p class="kicker">${esc(T('see.title', { name: e.person.name }))} · ${esc(dayLabel(e.date))}</p>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.plan.text)}</p></div>
+        ${e.evidence.map((n) => `<p class="headline" style="font-size:18px">${esc(n.text)}</p>${quoteBlock(n)}`).join('')}</section>`;
+    } else if (e.type === 'promise') {
+      html += `<section class="moment"><p class="kicker">${esc(T('promise.title', { name: e.person.name }))}</p>
+        <div class="who"><div class="mono" aria-hidden="true">${initial(e.person.name)}</div><p class="headline">${esc(e.item.text)}</p></div>
+        ${quoteBlock(e.item)}
+        ${e.reminder ? `<p class="meta">${esc(T('promise.planned', { when: shortDate(e.reminder.dueAt) }))}</p>` : ''}
+        <div class="actions">${e.reminder ? '' : `<button data-act="remind" data-id="${esc(e.item.id)}">${esc(T('promise.remind'))}</button>`}<button class="plain" data-act="done" data-id="${esc(e.item.id)}">${esc(T('promise.done'))}</button></div></section>`;
+    }
+  }
+  card.innerHTML = html + '</div>';
+  card.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', onAct));
+  bindLinks();
+  if (revealed && c.elements.some((e) => e.type === 'occasion') && !extras) loadExtras();
+}
+
+function extrasBlock(e) {
+  if (!extras) return `<div class="gifts"><div class="sk" style="height:150px"></div><div class="sk" style="height:150px"></div><div class="sk" style="height:150px"></div></div>`;
+  let h = '';
+  const g = extras.gifts || {};
+  if (g.products?.length) {
+    h += `<p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" data-link="${esc(p.url)}"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" onerror="this.style.visibility='hidden'"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))} · ${esc(p.merchant)}</span></div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}</p>`;
+  } else if (g.status === 'no_key') h += `<p class="small">${esc(T('occasion.gifts.nokey'))}</p>`;
+  else if (g.status === 'error') h += `<p class="small">${esc(T('occasion.gifts.error'))}</p>`;
+  else if (e.giftQuery) h += `<p class="small">${esc(T('occasion.gifts.none'))}</p>`;
+  const pl = extras.place || {};
+  if (pl.place) h += `<p class="kicker">${esc(T('occasion.place'))}</p><div class="place"><span><b>${esc(pl.place.name)}</b>${pl.place.area ? ' · ' + esc(pl.place.area) : ''}</span><span class="meta">${pl.place.rating ? esc(pl.place.rating.toFixed(1)) + ' ★ · ' + esc(pl.place.ratings) : ''}</span></div>`;
+  else if (pl.status === 'no_key' && e.experienceQuery) h += `<p class="small">${esc(T('occasion.place.nokey'))}</p>`;
+  else if (pl.status === 'no_area' && e.experienceQuery) h += `<p class="small">${esc(T('occasion.place.noarea'))}</p>`;
+  return h;
+}
+
+// Links open through the host (MCP Apps ui/open-link): a sandboxed view cannot open windows itself.
+function bindLinks() {
+  card.querySelectorAll('a[data-link]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); rpc('ui/open-link', { url: a.dataset.link }).catch(() => {}); }));
+}
+
+async function loadExtras() {
+  try { const r = await call('gift_ideas'); extras = r?.structuredContent || { gifts: { status: 'error' } }; }
+  catch { extras = { gifts: { status: 'error' }, place: {} }; }
+  render();
+}
+
+async function onAct(ev) {
+  const b = ev.currentTarget;
+  if (busy) return;
+  const act = b.dataset.act, id = b.dataset.id;
+  if (b.dataset.link) return;
+  busy = true; b.disabled = true;
+  try {
+    let r;
+    if (act === 'yes' || act === 'no') r = await call('answer_note', { note_id: id, answer: act });
+    else if (act === 'remind') r = await call('remind_me', { note_id: id, when: 'tomorrow_morning' });
+    else if (act === 'done') r = await call('mark_done', { note_id: id });
+    else if (act === 'show' || act === 'hide') { r = await call('reveal_card', { show: act === 'show' }); if (act === 'hide') extras = null; }
+    if (r?.structuredContent?.card) state = r.structuredContent;
+  } catch { b.disabled = false; }
+  busy = false;
+  render();
+}
+
+addEventListener('message', (e) => {
+  if (e.source !== parent) return;
+  const m = e.data;
+  if (!m || m.jsonrpc !== '2.0') return;
+  if (m.id != null && !m.method) { const w = waiting.get(m.id); if (w) { waiting.delete(m.id); m.error ? w.reject(m.error) : w.resolve(m.result); } return; }
+  if (m.method === 'ui/notifications/tool-result') { const s = m.params?.structuredContent; if (s?.card) { state = s; render(); } }
+  else if (m.method === 'ui/notifications/host-context-changed') applyContext(m.params);
+  else if (m.method === 'ui/resource-teardown') parent.postMessage({ jsonrpc: '2.0', id: m.id, result: {} }, '*');
+});
+
+new ResizeObserver(() => notify('ui/notifications/size-changed', { width: Math.ceil(document.documentElement.scrollWidth), height: Math.ceil(card.getBoundingClientRect().height) })).observe(card);
+
+rpc('ui/initialize', { protocolVersion: '2026-01-26', appInfo: { name: 'thoughtful-tonight', version: '0.1.0' }, appCapabilities: { availableDisplayModes: ['inline'] } })
+  .then((r) => { applyContext(r?.hostContext); notify('ui/notifications/initialized', {}); });
+</script>
+</body>
+</html>

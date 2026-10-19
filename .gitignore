@@ -1,0 +1,11 @@
+node_modules/
+# Private data never lives in the repo. Runtime data goes to ~/Library/Application Support/Thoughtful.
+data/
+*.private.*
+*.local.json
+.env
+.env.*
+captures-privees/
+private/
+*.log
+.DS_Store

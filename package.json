@@ -1,0 +1,23 @@
+{
+  "name": "thoughtful",
+  "version": "0.1.0",
+  "description": "Bee remembers what the people you love care about. Thoughtful gives it back at the right moment, without ever interrupting a conversation.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Blanco (@blanco_1er)",
+  "engines": { "node": ">=22" },
+  "bin": { "thoughtful": "bin/thoughtful.mjs" },
+  "scripts": {
+    "start": "node bin/thoughtful.mjs serve",
+    "sample": "node bin/thoughtful.mjs serve --sample",
+    "sync": "node bin/thoughtful.mjs sync",
+    "test": "node --test",
+    "check": "node --test && node scripts/check-no-private-data.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1152.0",
+    "@beeai/cli": "^0.8.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "zod": "^3.25.76"
+  }
+}
