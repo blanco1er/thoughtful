@@ -204,7 +204,7 @@ function extrasHtml(e) {
   let h = '';
   const g = extras.gifts || {};
   if (g.products?.length) {
-    h += `<p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))} · ${esc(p.merchant)}</span></div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}</p>`;
+    h += `<p class="kicker">${esc(T('occasion.gifts', { name: e.person.name }))}</p><div class="gifts">${g.products.map((p) => `<a class="gift" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"><div><b>${esc(p.title)}</b><span>${esc(money(p.price, p.currency))} · ${esc(p.merchant)}</span></div></a>`).join('')}</div><p class="small">${esc(T('occasion.us'))}${g.snapshot ? ' ' + esc(T('occasion.snapshot', { date: shortDate(Date.parse(g.snapshot + 'T12:00:00Z')) })) : ''}</p>`;
   } else if (e.giftQuery) {
     h += `<p class="small">${esc(T(g.status === 'no_key' ? 'occasion.gifts.nokey' : g.status === 'error' ? 'occasion.gifts.error' : 'occasion.gifts.none'))}</p>`;
   }

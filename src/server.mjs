@@ -146,7 +146,9 @@ export function createServer(ctx, { host = '127.0.0.1', port = 4317, dataDir } =
 async function proxyImage(ctx, url, res) {
   const u = url.searchParams.get('u') || '';
   const cache = ctx.current.store.state.cache;
-  const allowed = Object.entries(cache).some(([k, v]) => k.startsWith('gifts:') && (v.value || []).some((p) => p.image === u));
+  let snap = [];
+  try { snap = Object.values(JSON.parse(fs.readFileSync(new URL('../sample/lookups-snapshot.json', import.meta.url), 'utf8')).gifts || {}).flat(); } catch {}
+  const allowed = Object.entries(cache).some(([k, v]) => k.startsWith('gifts:') && (v.value || []).some((p) => p.image === u)) || snap.some((p) => p.image === u);
   if (!allowed || !/^https:\/\//.test(u)) return send(res, 404, 'not found');
   try {
     const r = await fetch(u, { signal: AbortSignal.timeout(8000) });

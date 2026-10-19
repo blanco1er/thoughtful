@@ -13,6 +13,8 @@ import { planNudge, atLocal } from './nudges.mjs';
 import { findGifts, findPlace, keysStatus } from './lookups.mjs';
 
 const DAY = 86_400_000;
+const SNAPSHOT = new URL('../sample/lookups-snapshot.json', import.meta.url);
+function loadLookupSnapshot() { try { return JSON.parse(fs.readFileSync(SNAPSHOT, 'utf8')); } catch { return null; } }
 
 function pickExtractor(mode, store, override) {
   if (override) return override;
@@ -245,10 +247,16 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       const el = card.elements.find((e) => e.type === kind);
       if (!el) return { gifts: { status: 'empty', products: [] }, place: { status: 'empty', place: null } };
       const s = S();
-      const [gifts, place] = await Promise.all([
+      let [gifts, place] = await Promise.all([
         lk.findGifts(s, el.giftQuery),
         lk.findPlace(s, el.experienceQuery, s.settings.homeArea, { lang: lang() }),
       ]);
+      // Sample household without keys: replay a dated snapshot of real results (scripts/record-sample-lookups.mjs).
+      if (mode === 'sample') {
+        const snap = loadLookupSnapshot();
+        if (gifts.status === 'no_key' && snap?.gifts?.[el.giftQuery]) gifts = { status: 'ok', products: snap.gifts[el.giftQuery], snapshot: snap.recordedOn };
+        if (place.status === 'no_key' && snap?.places?.[el.experienceQuery]) place = { status: 'ok', place: snap.places[el.experienceQuery], snapshot: snap.recordedOn };
+      }
       save();
       return { gifts, place, giftQuery: el.giftQuery, experienceQuery: el.experienceQuery };
     },
