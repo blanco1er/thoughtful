@@ -57,6 +57,7 @@ export function createServer(ctx, { host = '127.0.0.1', port = 4317, dataDir } =
     const p = url.pathname;
     const m = req.method;
     if (p === '/api/state' && m === 'GET') return send(res, 200, await ctx.summary());
+    if (p === '/api/week' && m === 'GET') return send(res, 200, ctx.week());
     if (p === '/api/extras' && m === 'GET') return send(res, 200, await ctx.extras(url.searchParams.get('kind') || 'occasion'));
     if (p.startsWith('/api/people/') && m === 'GET') {
       // A link to someone who was forgotten is not an error: the app goes back to the list (UB-43).
@@ -113,7 +114,7 @@ export function createServer(ctx, { host = '127.0.0.1', port = 4317, dataDir } =
       }
       if (url.pathname === '/i18n.mjs') return send(res, 200, fs.readFileSync(I18N), { 'Content-Type': TYPES['.mjs'] });
       // static web app
-      let file = path.normalize(path.join(WEB, decodeURIComponent(url.pathname)));
+      let file = path.normalize(path.join(WEB, url.pathname === '/tv' ? 'tv.html' : decodeURIComponent(url.pathname)));
       if (!file.startsWith(WEB)) return send(res, 403, 'forbidden');
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
       if (!fs.existsSync(file)) file = path.join(WEB, 'index.html');

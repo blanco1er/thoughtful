@@ -71,6 +71,11 @@ export const STRINGS = {
     'err.title': 'Thoughtful could not read Bee', 'retry': 'Try again',
     'loading': 'Opening your notebook…',
     'date.on': 'on {date}',
+    'tv.title': 'Your week with the people you love', 'tv.head': '{n} new things about {p} people you love.', 'tv.head.0': 'A quiet week.',
+    'tv.learned': 'New things you learned', 'tv.learned.n': '{n} new', 'tv.learned.none': 'Nothing new this week. That is fine.',
+    'tv.upcoming': 'Coming up', 'tv.upcoming.in': 'in {d} days', 'tv.upcoming.none': 'No birthday in the next 30 days.',
+    'tv.seeing': 'You will see', 'tv.promises': 'Promises', 'tv.promises.v': '{kept} kept this week · {open} still open',
+    'tv.quiet': '{n} reminders this week, none during a conversation.', 'tv.private': 'Family-safe view: names only. Notes, quotes and gift ideas stay on your phone.',
   },
   fr: {
     'app.name': 'Thoughtful',
@@ -142,6 +147,11 @@ export const STRINGS = {
     'err.title': 'Thoughtful n’a pas pu lire Bee', 'retry': 'Réessayer',
     'loading': 'Ouverture de votre carnet…',
     'date.on': 'le {date}',
+    'tv.title': 'Votre semaine avec ceux que vous aimez', 'tv.head': '{n} choses nouvelles sur {p} personnes que vous aimez.', 'tv.head.0': 'Une semaine calme.',
+    'tv.learned': 'Ce que vous avez appris', 'tv.learned.n': '{n} nouveau(x)', 'tv.learned.none': 'Rien de neuf cette semaine. C’est très bien aussi.',
+    'tv.upcoming': 'À venir', 'tv.upcoming.in': 'dans {d} jours', 'tv.upcoming.none': 'Aucun anniversaire dans les 30 jours.',
+    'tv.seeing': 'Vous verrez', 'tv.promises': 'Promesses', 'tv.promises.v': '{kept} tenue(s) cette semaine · {open} en cours',
+    'tv.quiet': '{n} rappel(s) cette semaine, aucun pendant une conversation.', 'tv.private': 'Vue familiale : seulement des prénoms. Notes, citations et idées de cadeaux restent sur votre téléphone.',
   },
 };
 

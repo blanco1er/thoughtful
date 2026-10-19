@@ -85,6 +85,37 @@ export function createContext({ dataDir = config.dataDir, mode: initialMode, sou
       };
     },
 
+    /** "Sunday" view for a TV: family-safe, names and counts only (no quotes, no gifts). */
+    week() {
+      const s = S();
+      const t = now();
+      const today = localDay(t, tz());
+      const items = Object.values(s.items);
+      const name = (id) => s.people[id]?.name || '';
+      const learned = {};
+      for (const i of items) if (i.status === 'confirmed' && i.kind !== 'promise' && i.saidAt > t - 7 * DAY) learned[i.personId] = (learned[i.personId] || 0) + 1;
+      const upcoming = [];
+      for (const p of Object.values(s.people)) {
+        if (p.status !== 'confirmed' || !p.birthday) continue;
+        const y = Number(today.slice(0, 4));
+        let d = `${y}-${p.birthday}`;
+        if (d < today) d = `${y + 1}-${p.birthday}`;
+        const days = Math.round((Date.parse(d + 'T12:00:00Z') - Date.parse(today + 'T12:00:00Z')) / DAY);
+        if (days <= 30) upcoming.push({ name: p.name, relation: p.relation, date: d, days, kind: 'birthday' });
+      }
+      const seeing = items.filter((i) => i.kind === 'plan' && i.status === 'confirmed' && i.eventDate && i.eventDate >= today && i.eventDate <= localDay(t + 7 * DAY, tz()))
+        .map((i) => ({ name: name(i.personId), date: i.eventDate })).sort((a, b) => a.date.localeCompare(b.date));
+      const promises = items.filter((i) => i.kind === 'promise');
+      return {
+        mode, lang: lang(), today,
+        learned: Object.entries(learned).map(([pid, n]) => ({ name: name(pid), relation: s.people[pid]?.relation || '', n })).sort((a, b) => b.n - a.n),
+        upcoming: upcoming.sort((a, b) => a.days - b.days),
+        seeing,
+        promises: { kept: promises.filter((i) => i.status === 'done' && i.decidedAt > t - 7 * DAY).length, open: promises.filter((i) => i.status === 'confirmed').length },
+        reminders: s.nudges.filter((n) => n.status === 'sent' && n.sentAt > t - 7 * DAY).length,
+      };
+    },
+
     people() {
       const s = S();
       return Object.values(s.people).filter((p) => ['confirmed', 'suggested'].includes(p.status)).map((p) => {

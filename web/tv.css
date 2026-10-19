@@ -1,0 +1,25 @@
+/* "Sunday" on a TV (Fire TV browser or any 10-foot screen): read from the sofa, D-pad friendly,
+   5 % safe margins for overscan, family-safe (names and counts only). */
+:root { --bg: #14110e; --surface: #1f1a16; --label: #f4eee7; --label-2: #b9ad9f; --accent: #f09a70; --line: rgba(255, 240, 225, .12);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif; --rounded: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--label); -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; font-size: clamp(18px, 1.9vw, 34px); }
+#tv { padding: 5vh 5vw; display: grid; gap: 4vh; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; min-height: 100vh; }
+.loading { color: var(--label-2); }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 2vw; }
+.head > p { margin: 0; color: var(--label-2); font-size: .8em; text-align: right; }
+.kick { margin: 0 0 .3em; color: var(--label-2); font-size: .9em; font-weight: 600; }
+h1 { margin: 0; font: 700 2.2em/1.1 var(--rounded); letter-spacing: -0.02em; text-wrap: balance; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2vw; align-items: stretch; }
+section { background: var(--surface); border-radius: 1.2em; padding: 1.1em 1.2em; display: grid; gap: .5em; align-content: start; outline: none; border: 4px solid transparent; transition: border-color .18s ease, transform .25s cubic-bezier(.2, .8, .2, 1); }
+section:focus { border-color: var(--accent); transform: scale(1.02); }
+h2 { margin: 0 0 .2em; font-size: .85em; font-weight: 600; color: var(--label-2); }
+.row { display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: 1em; row-gap: .1em; align-items: baseline; padding: .45em 0; border-top: 1px solid var(--line); }
+.row:first-of-type { border-top: 0; }
+.row b { font-weight: 600; }
+.row span { color: var(--label-2); font-variant-numeric: tabular-nums; }
+.empty { color: var(--label-2); margin: 0; }
+.foot { color: var(--label-2); font-size: .72em; display: flex; justify-content: space-between; gap: 2vw; flex-wrap: wrap; }
+.sample { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { section { transition: none; } section:focus { transform: none; } }
