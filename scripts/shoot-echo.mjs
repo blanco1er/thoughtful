@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Screenshots of tonight's card in mcp-voice-host (Echo Show 15 / Show 8 / phone frames), light and dark.
+//   MASK=1 blurs names, notes and quotes (screenshots of real data).
 //   HOST_URL=http://localhost:4290 OUT=./shots PLAYWRIGHT_CORE=<path to playwright-core> CHROME_PATH=<chrome> node scripts/shoot-echo.mjs
 // Prints page errors and horizontal overflow; exits 1 if any.
 import { createRequire } from 'node:module';
@@ -29,6 +30,12 @@ for (const s of shots) {
       const b = await frame.$(`button[data-act="${process.env.CLICK}"]`).catch(() => null);
       if (b) { await b.click(); await page.waitForTimeout(2500); break; }
     }
+  }
+  if (process.env.MASK) {
+    // Real data: blur names, notes and quotes in the card and the spoken reply before the screenshot.
+    await page.addStyleTag({ content: '#reply{filter:blur(8px)}' }).catch(() => {});
+    for (const frame of page.frames()) await frame.addStyleTag({ content: '.headline,.quote,.mono,h1,.note-text,.cover strong,.gift b,.place b,.meta,.kicker{filter:blur(7px)}' }).catch(() => {});
+    await page.waitForTimeout(300);
   }
   const over = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   if (over > 0) errs.push(`horizontal overflow ${over}px`);
